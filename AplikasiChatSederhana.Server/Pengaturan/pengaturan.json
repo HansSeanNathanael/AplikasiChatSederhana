@@ -1,0 +1,5 @@
+{
+    "domain" : "@kelompok6.co.id",
+    "port" : 9000,
+    "basis_data" : "aplikasi_chat_sederhana.db"
+}

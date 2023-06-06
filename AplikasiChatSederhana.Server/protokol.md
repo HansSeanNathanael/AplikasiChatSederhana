@@ -1,6 +1,6 @@
 # Dokumentasi Protokol
 
-Protokol v1.0 (18:29 - 5 Juni 2023)
+Protokol v1.1 (18:29 - 5 Juni 2023)
 
 
 ## Aturan protokol
@@ -39,11 +39,11 @@ Daftar protokol
 3. [Logout](#logout)
 4. [Membuat Group](#membuat-group)
 5. [Gabung Group](#gabung-group)
-5. [Keluar Group](#keluar-group)
-6. [Mengirim chat](#mengirim-chat)
-7. [Mengirim file](#mengirim-file)
-8. [Mengambil inbox](#mengambil-inbox)
-9. [Chat masuk](#chat-masuk)
+6. [Keluar Group](#keluar-group)
+7. [Mengirim chat](#mengirim-chat)
+8. [Mengirim file](#mengirim-file)
+9. [Mengambil inbox](#mengambil-inbox)
+10. [Chat masuk](#chat-masuk)
 
 
 
@@ -183,6 +183,7 @@ Penjelasan parameter:
 Respon dari server berupa JSON dengan isi:
 1. Bila berhasil:
     - success : pesan berhasil
+    - waktu_dikirim : menunjukkan kapan pesan berhasil dikirim
 
 2. Bila gagal:
     - error : pesan gagal
@@ -205,6 +206,7 @@ Penjelasan parameter:
 Respon dari server berupa JSON dengan isi:
 1. Bila berhasil:
     - success : pesan berhasil
+    - waktu_dikirim : menunjukkan kapan pesan berhasil dikirim
 
 2. Bila gagal:
     - error : pesan gagal
@@ -225,8 +227,11 @@ Penjelasan parameter:
 Respon dari server berupa JSON dengan isi:
 1. Bila berhasil:
     akan berisi JSON dengan setiap attribute/key adalah alamat asal pengirim dan nilainya adalah array message. Bentuk message adalah sebagai berikut:
+    - id_tujuan : id dari tujuan
     - id_pengirim : id dari pengirim chat
+    - keperluan : keperluan ada "PRIVATE" atau "GRUP"  
     - bentuk_chat : bentuk chat ada dua yaitu "CHAT" atau "FILE"
+    - id_grup : id dari grup bila chat dikirimkan menuju grup
     - chat : hanya ada bila bentuk_chat adalah CHAT. Isinya adalah chat yang dikirim.
     - nama_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah nama file yang dikirim.
     - isi_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah isi file yang dikirim dalam format base64.
@@ -241,8 +246,11 @@ Respon dari server berupa JSON dengan isi:
 Ini bukanlah request tetapi ini adalah data chat yang dikirimkan oleh server secara real time ketika user online. Menjadi tanggung jawab aplikasi klien untuk menyimpan data chat ke dalam database. Server akan meneruskan tanpa menyimpan data ke dalam basis data. 
 
 Chat dikirim dalam bentuk JSON. Format JSON chat adalah sebagai berikut:
+- id_tujuan : id dari tujuan
 - id_pengirim : id dari pengirim chat
+- keperluan : keperluan ada "PRIVATE" atau "GRUP"  
 - bentuk_chat : bentuk chat ada dua yaitu "CHAT" atau "FILE"
+- id_grup : id dari grup bila chat dikirimkan menuju grup
 - chat : hanya ada bila bentuk_chat adalah CHAT. Isinya adalah chat yang dikirim.
 - nama_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah nama file yang dikirim.
 - isi_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah isi file yang dikirim dalam format base64.
@@ -258,7 +266,9 @@ Daftar protokol
 2. [Keluar Group](#keluar-group-eksternal)
 3. [Mengirim chat](#mengirim-chat-eksternal)
 4. [Mengirim file](#mengirim-file-eksternal)
-5. [Autentikasi Realm Eksternal]() *Masih didiskusikan*
+5. [Mengirim chat group](#mengirim-chat-eksternal)
+6. [Mengirim file group](#mengirim-file-eksternal)
+7. [Autentikasi Realm Eksternal]() *Masih didiskusikan*
 
 
 
@@ -305,7 +315,7 @@ Respon dari server berupa JSON dengan isi:
 
 ### Mengirim chat [Eksternal]
 
-Untuk mengirim chat baik secara personal atau menuju alamat grup. Peringatan! Untuk chat yang dikirim hanya akan diteruskan ke semua anggota selain pengirim sehingga menjadi tanggung jawab anda untuk menyimpan pesan yang dikirim untuk sang pengirim. Berikut adalah format untuk mengirim chat:
+Untuk mengirim chat baik secara personal atau menuju alamat grup pada realm kami. Peringatan! Untuk chat yang dikirim hanya akan diteruskan ke semua anggota selain pengirim sehingga menjadi tanggung jawab anda untuk menyimpan pesan yang dikirim untuk sang pengirim. Request ini juga hanya diperuntukkan mengirim chat private menuju user atau grup pada realm kami. Untuk meneruskan chat grup dari realm anda menuju user realm kami gunakan [mengirim chat grup eksternal](#mengirim-chat-group-eksternal). Berikut adalah format untuk mengirim chat:
 ```text
 CHAT_EKSTERNAL id_pengirim id_tujuan isi_chat 
 ```
@@ -318,6 +328,7 @@ Penjelasan parameter:
 Respon dari server berupa JSON dengan isi:
 1. Bila berhasil:
     - success : pesan berhasil
+    - waktu_dikirim : menunjukkan kapan pesan berhasil dikirim
 
 2. Bila gagal:
     - error : pesan gagal
@@ -326,9 +337,9 @@ Respon dari server berupa JSON dengan isi:
 
 ### Mengirim file [Eksternal]
 
-Untuk mengirim file. Berikut adalah format untuk mengirim file:
+Untuk mengirim file menyerupai [mengirin chat eksternal](#mengirim-chat-eksternal). Berikut adalah format untuk mengirim file:
 ```text
-FILE id_pengirim id_tujuan nama_file isi_file 
+FILE_EKSTERNAL id_pengirim id_tujuan nama_file isi_file 
 ```
 
 Penjelasan parameter:
@@ -340,6 +351,53 @@ Penjelasan parameter:
 Respon dari server berupa JSON dengan isi:
 1. Bila berhasil:
     - success : pesan berhasil
+    - waktu_dikirim : menunjukkan kapan pesan berhasil dikirim
+
+2. Bila gagal:
+    - error : pesan gagal
+
+
+### Mengirim chat group [Eksternal]
+
+Untuk meneruskan chat group dari realm anda menuju user yang berada pada realm kami. Perbedaan dengan [mengirim chat eksternal](#mengirim-chat-eksternal) adalah request ini untuk meneruskan chat dari grup pada realm anda menuju user anggota pada realm kami. Berikut adalah format untuk mengirim chat:
+```text
+CHAT_GRUP_EKSTERNAL id_pengirim id_tujuan id_grup isi_chat 
+```
+
+Penjelasan parameter:
+- id_pengirim : id dari pengirim eksternal
+- id_tujuan : id lawan bicara (dapat personal atau grup)
+- id_grup : id grup realm anda yang terlibat pada chat
+- isi_chat : chat yang dikirimkan
+
+Respon dari server berupa JSON dengan isi:
+1. Bila berhasil:
+    - success : pesan berhasil
+    - waktu_dikirim : menunjukkan kapan pesan berhasil dikirim
+
+2. Bila gagal:
+    - error : pesan gagal
+
+
+
+### Mengirim file group [Eksternal]
+
+Untuk mengirim file menyerupai [mengirim chat group eksternal](#mengirim-chat-group-eksternal). Berikut adalah format untuk mengirim file:
+```text
+FILE_GRUP_EKSTERNAL id_pengirim id_tujuan id_grup nama_file isi_file 
+```
+
+Penjelasan parameter:
+- id_pengirim : id dari pengirim eksternal
+- id_tujuan : id lawan bicara (dapat personal atau grup)
+- id_grup : id dari grup realm anda yang terlibat
+- nama_file : nama dari file yang dikirimkan
+- isi_file : isi file dalam format base64
+
+Respon dari server berupa JSON dengan isi:
+1. Bila berhasil:
+    - success : pesan berhasil
+    - waktu_dikirim : menunjukkan kapan pesan berhasil dikirim
 
 2. Bila gagal:
     - error : pesan gagal

@@ -10,3 +10,10 @@ AplikasiChatSederhana adalah tugas kelas pemrograman jaringan yang dibuat oleh
 
 Untuk dokumentasi protokol dapat dibuka pada
 [dokumentasi protokol](/AplikasiChatSederhana.Server/protokol.md)
+
+
+Migrasi basis data:
+```
+cd .\AplikasiChatSederhana.Server\
+python .\migrasi.py
+```
