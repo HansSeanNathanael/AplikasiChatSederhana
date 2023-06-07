@@ -44,7 +44,7 @@ class ManajemenPesan:
         if tujuan is None:
             return {"error" : "tujuan tidak ada"}
         
-        tanggal_diterima = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        tanggal_diterima = datetime.datetime.now()
         
         if tujuan.grup == "personal":
             data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
@@ -103,7 +103,7 @@ class ManajemenPesan:
         if tujuan is None:
             return {"error" : "tujuan tidak ada"}
         
-        tanggal_diterima = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        tanggal_diterima = datetime.datetime.now()
         
         if tujuan.grup == "personal":
             data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
@@ -141,3 +141,85 @@ class ManajemenPesan:
                             
                             
         return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}
+    
+    
+    
+    def compare(item1 : PesanChat|PesanFile, item2 : PesanChat|PesanFile):
+        data_tanggal_item1 = item1.pesan.tanggal_terima
+        data_tanggal_item2 = item2.pesan.tanggal_terima
+        
+        if data_tanggal_item1 < data_tanggal_item2:
+            return -1
+        else:
+            return 1
+        
+        
+        
+    def ambil_inbox(self, token : str) -> dict:
+        
+        user = self.repository_akun.ambil_dari_token(token)
+        
+        if user is None:
+            return {"error" : "autentikasi salah"}
+        
+        daftar_chat = self.repository_pesan.ambil_daftar_pesan_chat_dari_id_user_tujuan(user.id)
+        daftar_file = self.repository_pesan.ambil_daftar_pesan_file_dari_id_user_tujuan(user.id)
+        
+        self.repository_pesan.hapus_pesan_dari_id_user(user.id)
+        
+        daftar_chat_lengkap : list[PesanChat|PesanFile] = []
+        daftar_chat_lengkap.extend(daftar_chat)
+        daftar_chat_lengkap.extend(daftar_file)
+        daftar_chat_lengkap.sort(key=self.compare)
+        
+        respon : dict[str, list[dict[str, str]]] = {}
+        
+        for chat in daftar_chat_lengkap:
+            if type(chat) is PesanChat:
+                respon_pesan = {
+                    "id_tujuan" : chat.pesan.id_tujuan,
+                    "id_pengirim" : chat.pesan.id_pengirim,
+                    "keperluan" : "PRIVATE",
+                    "bentuk_chat" : "CHAT",
+                    "chat" : chat.isi_pesan,
+                    "tanggal_diterima" : chat.pesan.tanggal_terima.strftime("%d-%m-%Y %H:%M:%S")
+                }
+        
+                if chat.pesan.id_grup is not None:
+                    respon_pesan["keperluan"] = "GRUP"
+                    respon_pesan["id_grup"] = chat.pesan.id_grup
+                
+                daftar_pesan_pengirim = respon.get(chat.pesan.id_pengirim)
+                
+                if daftar_pesan_pengirim is None:
+                    daftar_pesan_pengirim = []
+                    respon[chat.pesan.id_pengirim] = daftar_pesan_pengirim
+                    
+                daftar_pesan_pengirim.append(respon_pesan)
+                
+                
+            elif type(chat) is PesanFile:
+                respon_pesan = {
+                    "id_tujuan" : chat.pesan.id_tujuan,
+                    "id_pengirim" : chat.pesan.id_pengirim,
+                    "keperluan" : "PRIVATE",
+                    "bentuk_chat" : "FILE",
+                    "nama_file" : chat.nama_file,
+                    "isi_file" : chat.isi_file_base64,
+                    "tanggal_diterima" : chat.pesan.tanggal_terima.strftime("%d-%m-%Y %H:%M:%S")
+                }
+        
+                if chat.pesan.id_grup is not None:
+                    respon_pesan["keperluan"] = "GRUP"
+                    respon_pesan["id_grup"] = chat.pesan.id_grup
+                
+                daftar_pesan_pengirim = respon.get(chat.pesan.id_pengirim)
+                
+                if daftar_pesan_pengirim is None:
+                    daftar_pesan_pengirim = []
+                    respon[chat.pesan.id_pengirim] = daftar_pesan_pengirim
+                    
+                daftar_pesan_pengirim.append(respon_pesan)
+        
+        
+        return respon

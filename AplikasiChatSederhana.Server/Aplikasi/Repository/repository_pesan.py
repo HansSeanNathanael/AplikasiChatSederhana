@@ -1,3 +1,5 @@
+import datetime
+
 from .koneksi_database import KoneksiDatabase
 
 from ..Chat.Pesan.Data.pesan import Pesan
@@ -17,7 +19,7 @@ class RepositoryPesan:
             INSERT INTO pesan VALUES (?, ?, ?, ?, ?, ?)
         """
         
-        cursor.execute(script, (pesan.id_pesan, pesan.id_tujuan, pesan.id_pengirim, pesan.id_grup, pesan.tipe_pesan, pesan.tanggal_terima))
+        cursor.execute(script, (pesan.id_pesan, pesan.id_tujuan, pesan.id_pengirim, pesan.id_grup, pesan.tipe_pesan, pesan.tanggal_terima.strftime("%Y-%m-%d %H:%M:%S")))
         self.koneksi.commit()
         
         
@@ -59,6 +61,7 @@ class RepositoryPesan:
         script = """
             SELECT p.id, p.id_pengirim, p.id_tujuan, p.id_grup, p.tipe_pesan, p.tanggal_terima, pc.isi_pesan FROM pesan AS p
             INNER JOIN pesan_chat AS pc ON p.id = pc.id_pesan WHERE p.id_tujuan = ?
+            ORDER BY datetime(p.tanggal_terima) ASC
         """
         
         cursor.execute(script, (id_user_tujuan))
@@ -66,7 +69,7 @@ class RepositoryPesan:
         
         daftar_pesan : list[PesanChat] = []
         for pesan in hasil:
-            daftar_pesan.append(PesanChat(Pesan(pesan[0], pesan[1], pesan[2], pesan[3], pesan[4], pesan[5]), pesan[6]))
+            daftar_pesan.append(PesanChat(Pesan(pesan[0], pesan[1], pesan[2], pesan[3], pesan[4], datetime.datetime.strptime(pesan[5], "%Y-%m-%d %H:%M:%S")), pesan[6]))
         
         return daftar_pesan
     
@@ -80,6 +83,7 @@ class RepositoryPesan:
             SELECT p.id, p.id_pengirim, p.id_tujuan, p.id_grup, p.tipe_pesan, p.tanggal_terima, 
                 pf.nama_file, pf.isi_file_base64 FROM pesan AS p
             INNER JOIN pesan_file AS pf ON p.id = pf.id_pesan WHERE p.id_tujuan = ?
+            ORDER BY datetime(p.tanggal_terima) ASC
         """
         
         cursor.execute(script, (id_user_tujuan))
@@ -87,6 +91,26 @@ class RepositoryPesan:
         
         daftar_pesan : list[PesanFile] = []
         for pesan in hasil:
-            daftar_pesan.append(PesanFile(Pesan(pesan[0], pesan[1], pesan[2], pesan[3], pesan[4], pesan[5]), pesan[6], pesan[7]))
+            daftar_pesan.append(PesanFile(Pesan(pesan[0], pesan[1], pesan[2], pesan[3], pesan[4], datetime.datetime.strptime(pesan[5], "%Y-%m-%d %H:%M:%S")), pesan[6], pesan[7]))
         
         return daftar_pesan
+    
+    def hapus_pesan_dari_id_user(self, id_user : str):
+        cursor = self.koneksi.cursor()
+        
+        script_hapus_pesan_chat = """
+            DELETE FROM pesan_chat WHERE id_pesan IN (SELECT p.id FROM pesan AS p WHERE p.id_tujuan = ?)
+        """
+        cursor.execute(script_hapus_pesan_chat, (id_user))
+        
+        script_hapus_pesan_file = """
+            DELETE FROM pesan_file WHERE id_pesan IN (SELECT p.id FROM pesan AS p WHERE p.id_tujuan = ?)
+        """
+        cursor.execute(script_hapus_pesan_file, (id_user))
+        
+        script_hapus_pesan = """
+            DELETE FROM pesan WHERE p.id_tujuan = ?
+        """
+        cursor.execute(script_hapus_pesan, (id_user))
+        
+        self.koneksi.commit()

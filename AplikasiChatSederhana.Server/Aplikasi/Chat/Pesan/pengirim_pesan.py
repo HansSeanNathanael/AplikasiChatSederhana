@@ -22,7 +22,8 @@ class PengirimPesan:
             "id_pengirim" : pesan_chat.pesan.id_pengirim,
             "keperluan" : "PRIVATE",
             "bentuk_chat" : "CHAT",
-            "chat" : pesan_chat.isi_pesan
+            "chat" : pesan_chat.isi_pesan,
+            "tanggal_diterima" : pesan_chat.pesan.tanggal_terima.strftime("%d-%m-%Y %H:%M:%S")
         }
         
         if pesan_chat.pesan.id_grup is not None:
@@ -59,7 +60,8 @@ class PengirimPesan:
             "keperluan" : "PRIVATE",
             "bentuk_chat" : "FILE",
             "nama_file" : pesan_file.nama_file,
-            "isi_file" : pesan_file.isi_file_base64
+            "isi_file" : pesan_file.isi_file_base64,
+            "tanggal_diterima" : pesan_file.pesan.tanggal_terima.strftime("%d-%m-%Y %H:%M:%S")
         }
         
         if pesan_file.pesan.id_grup is not None:

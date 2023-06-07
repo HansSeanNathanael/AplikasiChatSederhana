@@ -1,6 +1,6 @@
 # Dokumentasi Protokol
 
-Protokol v1.1 (18:29 - 5 Juni 2023)
+Protokol v1.2 (21:56 - 7 Juni 2023)
 
 
 ## Aturan protokol
@@ -235,6 +235,7 @@ Respon dari server berupa JSON dengan isi:
     - chat : hanya ada bila bentuk_chat adalah CHAT. Isinya adalah chat yang dikirim.
     - nama_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah nama file yang dikirim.
     - isi_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah isi file yang dikirim dalam format base64.
+    - tanggal_diterima : tanggal diterimanya data pada server
 
 2. Bila gagal:
     - error : pesan gagal
@@ -254,6 +255,7 @@ Chat dikirim dalam bentuk JSON. Format JSON chat adalah sebagai berikut:
 - chat : hanya ada bila bentuk_chat adalah CHAT. Isinya adalah chat yang dikirim.
 - nama_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah nama file yang dikirim.
 - isi_file : hanya ada bila bentuk_chat adalah FILE. Isinya adalah isi file yang dikirim dalam format base64.
+- tanggal_diterima : tanggal diterimanya data pada server
 
 
 
