@@ -34,6 +34,8 @@ class Server(threading.Thread):
         self.socket.bind(self.alamat_server)
         self.socket.listen(5)
         
+        logging.warning(f"server berjalan pada port: {self.alamat_server[1]}")
+        
         while True:
             io_stream, alamat_klien = self.socket.accept()
             logging.warning(f"Koneksi masuk dari {alamat_klien} {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")

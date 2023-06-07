@@ -67,7 +67,7 @@ class ChatManager:
             
             elif perintah == "INBOX":
                 token = request[1].strip()
-                return 
+                return self.manajemen_pesan.ambil_inbox(token)
             
         except KeyError:
             return { 'error' : 'Informasi tidak ditemukan'}
