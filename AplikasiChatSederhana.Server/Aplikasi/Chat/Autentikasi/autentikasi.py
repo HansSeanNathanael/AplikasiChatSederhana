@@ -32,12 +32,17 @@ class Autentikasi:
         
     def login(self, id : str, password : str, io_stream) -> dict:
         data_user = self.repository_akun.ambil_dari_id(id)
+        socket_user = self.daftar_klien.dapatkan_socket_berdasarkan_id(id)
         
         if data_user is None:
             return {"error" : "akun tidak ada"}
         
+        if socket_user is not None:
+            return {"error" : "ada menggunakan akun"}
+        
         if data_user.grup != "personal" or data_user.id != id or data_user.password != password:
             return {"error" : "salah"}
+        
         
         token = self.repository_akun.buat_token(data_user.id)
         

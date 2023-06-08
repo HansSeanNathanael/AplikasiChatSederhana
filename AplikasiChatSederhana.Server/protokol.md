@@ -1,7 +1,18 @@
 # Dokumentasi Protokol
 
-Protokol v1.2 (21:56 - 7 Juni 2023)
+Protokol v1.3 (14:25 - 8 Juni 2023)
 
+## Format id 
+
+ID menggunakan format menyerupai email dan domain yang digunakan adalah:
+```text
+@kelompok6.co.id
+```
+
+sehingga contoh format id adalah seperti
+```text
+contoh_saja@kelompok6.co.id
+```
 
 ## Aturan protokol
 
@@ -226,7 +237,7 @@ Penjelasan parameter:
 
 Respon dari server berupa JSON dengan isi:
 1. Bila berhasil:
-    akan berisi JSON dengan setiap attribute/key adalah alamat asal pengirim dan nilainya adalah array message. Bentuk message adalah sebagai berikut:
+    akan berisi JSON dengan setiap attribute/key adalah alamat asal pengirim dan nilainya adalah array message. Bentuk JSON message adalah sebagai berikut:
     - id_tujuan : id dari tujuan
     - id_pengirim : id dari pengirim chat
     - keperluan : keperluan ada "PRIVATE" atau "GRUP"  
