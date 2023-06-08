@@ -2,7 +2,6 @@ from Aplikasi.Koneksi.server import Server
 from Aplikasi.Koneksi.server_untuk_realm_eksternal import ServerUntukRealmEksternal
 from Pengaturan.pengaturan import Pengaturan
 from Aplikasi.Koneksi.daftar_klien import DaftarKlien
-from Aplikasi.Koneksi.daftar_realm import DaftarRealm
 
 from Aplikasi.Chat.Autentikasi.autentikasi import Autentikasi
 from Aplikasi.Chat.Grup.manajemen_grup import ManajemenGrup
