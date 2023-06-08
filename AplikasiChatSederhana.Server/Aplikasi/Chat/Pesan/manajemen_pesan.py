@@ -1,4 +1,5 @@
 import datetime
+import functools
 import re
 import uuid
 
@@ -12,6 +13,15 @@ from ...Repository.repository_grup import RepositoryGrup
 from ..Pesan.Data.pesan import Pesan
 from ..Pesan.Data.pesan_chat import PesanChat
 from ..Pesan.Data.pesan_file import PesanFile
+
+def compare(item1 : PesanChat|PesanFile, item2 : PesanChat|PesanFile):
+    data_tanggal_item1 = item1.pesan.tanggal_terima
+    data_tanggal_item2 = item2.pesan.tanggal_terima
+    
+    if data_tanggal_item1 < data_tanggal_item2:
+        return -1
+    else:
+        return 1
 
 class ManajemenPesan:
     def __init__(self, domain : str, pengirim_pesan : PengirimPesan, interface_manajer_jembatan : InterfaceManajerJembatan,  repository_akun : RepositoryAkun, repository_pesan : RepositoryPesan, repository_grup : RepositoryGrup) -> None:
@@ -35,8 +45,11 @@ class ManajemenPesan:
         
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
         
+        tanggal_diterima = datetime.datetime.now()
+        
+        
         if domain_tujuan != self.domain:
-            data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
+            data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
             pesan_chat_baru = PesanChat(data_pesan, isi_chat)
             return self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
         
@@ -44,10 +57,8 @@ class ManajemenPesan:
         if tujuan is None:
             return {"error" : "tujuan tidak ada"}
         
-        tanggal_diterima = datetime.datetime.now()
-        
         if tujuan.grup == "personal":
-            data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
+            data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
             pesan_chat_baru = PesanChat(data_pesan, isi_chat)
             
             if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
@@ -62,7 +73,7 @@ class ManajemenPesan:
                 if id_anggota != pengirim.id:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_anggota, tujuan.id, "chat", tanggal_diterima)
+                    data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_anggota, tujuan.id, "chat", tanggal_diterima)
                     pesan_chat_baru = PesanChat(data_pesan, isi_chat)
                     
                     if domain_tujuan != self.domain:
@@ -73,7 +84,7 @@ class ManajemenPesan:
                             self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
                             
                             
-        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}
+        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima.strftime("%d-%m-%Y %H:%M:%S")}
     
     
     
@@ -86,8 +97,10 @@ class ManajemenPesan:
         
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
         
+        tanggal_diterima = datetime.datetime.now()
+        
         if domain_tujuan != self.domain:
-            data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
+            data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
             pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
             return self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
         
@@ -95,10 +108,8 @@ class ManajemenPesan:
         if tujuan is None:
             return {"error" : "tujuan tidak ada"}
         
-        tanggal_diterima = datetime.datetime.now()
-        
         if tujuan.grup == "personal":
-            data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
+            data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
             pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
             
             if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
@@ -113,7 +124,7 @@ class ManajemenPesan:
                 if id_anggota != pengirim.id:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_anggota, tujuan.id, "file", tanggal_diterima)
+                    data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_anggota, tujuan.id, "file", tanggal_diterima)
                     pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
                     
                     if domain_tujuan != self.domain:
@@ -123,18 +134,7 @@ class ManajemenPesan:
                             self.repository_pesan.tambah_pesan_file(pesan_file_baru)
                             
                             
-        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}
-    
-    
-    
-    def compare(item1 : PesanChat|PesanFile, item2 : PesanChat|PesanFile):
-        data_tanggal_item1 = item1.pesan.tanggal_terima
-        data_tanggal_item2 = item2.pesan.tanggal_terima
-        
-        if data_tanggal_item1 < data_tanggal_item2:
-            return -1
-        else:
-            return 1
+        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima.strftime("%d-%m-%Y %H:%M:%S")}
         
         
         
@@ -153,7 +153,7 @@ class ManajemenPesan:
         daftar_chat_lengkap : list[PesanChat|PesanFile] = []
         daftar_chat_lengkap.extend(daftar_chat)
         daftar_chat_lengkap.extend(daftar_file)
-        daftar_chat_lengkap.sort(key=self.compare)
+        sorted(daftar_chat_lengkap, key=functools.cmp_to_key(compare))
         
         respon : dict[str, list[dict[str, str]]] = {}
         

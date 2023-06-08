@@ -1,3 +1,5 @@
+import threading
+
 from Aplikasi.Koneksi.server import Server
 from Aplikasi.Koneksi.server_untuk_realm_eksternal import ServerUntukRealmEksternal
 from Pengaturan.pengaturan import Pengaturan
@@ -23,22 +25,23 @@ if __name__=="__main__":
     
     daftar_klien = DaftarKlien()
     koneksi_database = KoneksiDatabase(pengaturan)
+    lock_database = threading.Lock()
     server = Server(
-        pengaturan, daftar_klien, Autentikasi(pengaturan["domain"], daftar_klien, RepositoryAkun(koneksi_database)),
-        ManajemenGrup(pengaturan["domain"], None, RepositoryAkun(koneksi_database), RepositoryGrup(koneksi_database)),
+        pengaturan, daftar_klien, Autentikasi(pengaturan["domain"], daftar_klien, RepositoryAkun(koneksi_database, lock_database)),
+        ManajemenGrup(pengaturan["domain"], None, RepositoryAkun(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)),
         ManajemenPesan(
             pengaturan["domain"], PengirimPesan(daftar_klien), None, 
-            RepositoryAkun(koneksi_database), RepositoryPesan(koneksi_database), RepositoryGrup(koneksi_database)
+            RepositoryAkun(koneksi_database, lock_database), RepositoryPesan(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)
         )
     )
     
     server.start()
     
     server_untuk_realm_eksternal = ServerUntukRealmEksternal(
-        pengaturan, ManajemenGrupEksternal(RepositoryAkun(koneksi_database), RepositoryGrup(koneksi_database)),
+        pengaturan, ManajemenGrupEksternal(RepositoryAkun(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)),
         ManajemenPesanEksternal(
             pengaturan["domain"], PengirimPesan(daftar_klien), None,
-            RepositoryAkun(koneksi_database), RepositoryPesan(koneksi_database), RepositoryGrup(koneksi_database)
+            RepositoryAkun(koneksi_database, lock_database), RepositoryPesan(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)
         )
     )
     

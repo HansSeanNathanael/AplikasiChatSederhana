@@ -45,8 +45,9 @@ print('Input "DISCONNECTED" to close the program')
 str_input = input("Input: ")
 thread = threading.Thread(target=listen, daemon=True)
 thread.start()
+
 while str_input != "DISCONNECTED":
-    send(str_input)
     str_input = input("Input: ")
+    send(str_input)
 
 send(DISCONNECT_MESSAGE)

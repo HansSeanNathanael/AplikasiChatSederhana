@@ -41,7 +41,7 @@ class ManajemenPesanEksternal:
         tanggal_diterima = datetime.datetime.now()
         
         if tujuan.grup == "personal":
-            data_pesan = Pesan(uuid.uuid4(), id_pengirim, id_tujuan, id_grup, "chat", tanggal_diterima)
+            data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_tujuan, id_grup, "chat", tanggal_diterima)
             pesan_chat_baru = PesanChat(data_pesan, isi_chat)
             
             if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
@@ -56,7 +56,7 @@ class ManajemenPesanEksternal:
                 if id_anggota != id_pengirim:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(uuid.uuid4(), id_pengirim, id_anggota, tujuan.id, "chat", tanggal_diterima)
+                    data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_anggota, tujuan.id, "chat", tanggal_diterima)
                     pesan_chat_baru = PesanChat(data_pesan, isi_chat)
                     
                     if domain_tujuan != self.domain:
@@ -86,7 +86,7 @@ class ManajemenPesanEksternal:
         tanggal_diterima = datetime.datetime.now()
         
         if tujuan.grup == "personal":
-            data_pesan = Pesan(uuid.uuid4(), id_pengirim, id_tujuan, id_grup, "file", tanggal_diterima)
+            data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_tujuan, id_grup, "file", tanggal_diterima)
             pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
             
             if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
@@ -101,7 +101,7 @@ class ManajemenPesanEksternal:
                 if id_anggota != id_pengirim:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(uuid.uuid4(), id_pengirim, id_anggota, tujuan.id, "file", tanggal_diterima)
+                    data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_anggota, tujuan.id, "file", tanggal_diterima)
                     pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
                     
                     if domain_tujuan != self.domain:

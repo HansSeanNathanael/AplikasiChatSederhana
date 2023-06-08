@@ -26,7 +26,7 @@ class ManajemenGrup:
         if akun_pembuat is None:
             return {"error" : "autentikasi salah"}
         
-        id_grup_penuh = id_awalan_grup + self.domain       
+        id_grup_penuh = id_awalan_grup.lower() + "@" + self.domain       
         grup_yang_akan_dibuat = self.repository_akun.ambil_dari_id(id_grup_penuh)
         
         if grup_yang_akan_dibuat is not None:
@@ -56,6 +56,10 @@ class ManajemenGrup:
             
             if grup_tujuan.id != id_grup or grup_tujuan.password != password:
                 return {"error" : "salah"}
+            
+            daftar_anggota = self.repository_grup.ambil_daftar_anggota(id_grup)
+            if user.id in daftar_anggota.daftar_anggota:
+                return {"error" : "sudah bergabung"}
             
             self.repository_grup.tambah_anggota(id_grup, user.id)
             return {"success" : "berhasil bergabung"}

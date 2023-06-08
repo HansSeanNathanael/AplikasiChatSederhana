@@ -14,7 +14,7 @@ class Autentikasi:
 
     
     def register(self, awalan_id : str, password : str) -> dict:
-        id_penuh : str = awalan_id + self.domain
+        id_penuh : str = awalan_id.lower() + "@" + self.domain
         
         pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
         if re.match(pattern, id_penuh) is None:
@@ -24,7 +24,7 @@ class Autentikasi:
         if data_user is not None:
             return {"error" : "id telah digunakan"}
         
-        self.repository_akun.buat_user(Akun(id_penuh, password, "personal"))
+        self.repository_akun.buat_akun(Akun(id_penuh, password, "personal"))
         
         return {"id_akun" : id_penuh}
         
