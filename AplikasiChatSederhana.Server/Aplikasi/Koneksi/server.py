@@ -25,9 +25,6 @@ class Server(threading.Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
-        self.socket_berdasarkan_id = {}
-        self.id_berdasarkan_socket = {}
-        
         threading.Thread.__init__(self)
         
     def run(self):

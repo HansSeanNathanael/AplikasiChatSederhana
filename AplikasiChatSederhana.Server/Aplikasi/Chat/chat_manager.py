@@ -65,9 +65,14 @@ class ChatManager:
                 isi_file = request[4].strip()
                 return self.manajemen_pesan.mengirim_file(token, id_tujuan, nama_file, isi_file)
             
+            
             elif perintah == "INBOX":
                 token = request[1].strip()
                 return self.manajemen_pesan.ambil_inbox(token)
+            
+            
+            else:
+                return {"error" : "request tidak ada"}
             
         except KeyError:
             return { 'error' : 'Informasi tidak ditemukan'}

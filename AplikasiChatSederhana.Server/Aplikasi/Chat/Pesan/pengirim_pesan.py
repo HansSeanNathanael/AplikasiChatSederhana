@@ -10,7 +10,7 @@ class PengirimPesan:
     
     
       
-    def kirim_pesan_chat(self, pesan_chat : PesanChat, io_stream) -> bool:
+    def kirim_pesan_chat(self, pesan_chat : PesanChat) -> bool:
         
         socket_tujuan = self.daftar_klien.dapatkan_socket_berdasarkan_id(pesan_chat.pesan.id_tujuan)
         
@@ -47,7 +47,7 @@ class PengirimPesan:
     
     
        
-    def kirim_pesan_file(self, pesan_file : PesanFile, io_stream) -> bool:
+    def kirim_pesan_file(self, pesan_file : PesanFile) -> bool:
         
         socket_tujuan = self.daftar_klien.dapatkan_socket_berdasarkan_id(pesan_file.pesan.id_tujuan)
         

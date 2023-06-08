@@ -2,8 +2,8 @@ import datetime
 import re
 import uuid
 
-from ...Koneksi.daftar_klien import DaftarKlien
 from .pengirim_pesan import PengirimPesan
+from ...InterfacesJembatan.interface_manajer_jembatan import InterfaceManajerJembatan
 
 from ...Repository.repository_akun import RepositoryAkun
 from ...Repository.repository_pesan import RepositoryPesan
@@ -14,10 +14,10 @@ from ..Pesan.Data.pesan_chat import PesanChat
 from ..Pesan.Data.pesan_file import PesanFile
 
 class ManajemenPesan:
-    def __init__(self, domain : str, pengirim_pesan : PengirimPesan, daftar_klien : DaftarKlien, repository_akun : RepositoryAkun, repository_pesan : RepositoryPesan, repository_grup : RepositoryGrup) -> None:
+    def __init__(self, domain : str, pengirim_pesan : PengirimPesan, interface_manajer_jembatan : InterfaceManajerJembatan,  repository_akun : RepositoryAkun, repository_pesan : RepositoryPesan, repository_grup : RepositoryGrup) -> None:
         self.domain = domain
         self.pengirim_pesan = pengirim_pesan
-        self.daftar_klien = daftar_klien
+        self.interface_manajer_jembatan = interface_manajer_jembatan
         self.repository_akun = repository_akun
         self.repository_pesan = repository_pesan
         self.repository_grup = repository_grup
@@ -36,9 +36,9 @@ class ManajemenPesan:
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
         
         if domain_tujuan != self.domain:
-            # TODO
-            # buat implementasi untuk mengirim menuju realm lain
-            pass
+            data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
+            pesan_chat_baru = PesanChat(data_pesan, isi_chat)
+            return self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
         
         tujuan = self.repository_akun.ambil_dari_id(id_tujuan)
         if tujuan is None:
@@ -50,10 +50,7 @@ class ManajemenPesan:
             data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "chat", tanggal_diterima)
             pesan_chat_baru = PesanChat(data_pesan, isi_chat)
             
-            io_stream_tujuan = self.daftar_klien.dapatkan_socket_berdasarkan_id(data_pesan.id_tujuan)
-            if io_stream_tujuan is None:
-                self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
-            elif not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru, io_stream_tujuan):
+            if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
                 self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
         
         
@@ -65,19 +62,14 @@ class ManajemenPesan:
                 if id_anggota != pengirim.id:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
+                    data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_anggota, tujuan.id, "chat", tanggal_diterima)
+                    pesan_chat_baru = PesanChat(data_pesan, isi_chat)
+                    
                     if domain_tujuan != self.domain:
-                        # TODO
-                        # buat implementasi untuk mengirim menuju realm lain
-                        pass
+                        self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
                     
                     else:
-                        data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_anggota, tujuan.id, "chat", tanggal_diterima)
-                        pesan_chat_baru = PesanChat(data_pesan, isi_chat)
-                        
-                        io_stream_tujuan = self.daftar_klien.dapatkan_socket_berdasarkan_id(data_pesan.id_tujuan)
-                        if io_stream_tujuan is None:
-                            self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
-                        elif not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru, io_stream_tujuan):
+                        if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
                             self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
                             
                             
@@ -95,9 +87,9 @@ class ManajemenPesan:
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
         
         if domain_tujuan != self.domain:
-            # TODO
-            # buat implementasi untuk mengirim menuju realm lain
-            pass
+            data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
+            pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
+            return self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
         
         tujuan = self.repository_akun.ambil_dari_id(id_tujuan)
         if tujuan is None:
@@ -109,10 +101,7 @@ class ManajemenPesan:
             data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_tujuan, None, "file", tanggal_diterima)
             pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
             
-            io_stream_tujuan = self.daftar_klien.dapatkan_socket_berdasarkan_id(data_pesan.id_tujuan)
-            if io_stream_tujuan is None:
-                self.repository_pesan.tambah_pesan_file(pesan_file_baru)
-            elif not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru, io_stream_tujuan):
+            if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
                 self.repository_pesan.tambah_pesan_file(pesan_file_baru)
         
         
@@ -124,19 +113,13 @@ class ManajemenPesan:
                 if id_anggota != pengirim.id:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    if domain_tujuan != self.domain:
-                        # TODO
-                        # buat implementasi untuk mengirim menuju realm lain
-                        pass
+                    data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_anggota, tujuan.id, "file", tanggal_diterima)
+                    pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
                     
+                    if domain_tujuan != self.domain:
+                        return self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
                     else:
-                        data_pesan = Pesan(uuid.uuid4(), pengirim.id, id_anggota, tujuan.id, "file", tanggal_diterima)
-                        pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
-                        
-                        io_stream_tujuan = self.daftar_klien.dapatkan_socket_berdasarkan_id(data_pesan.id_tujuan)
-                        if io_stream_tujuan is None:
-                            self.repository_pesan.tambah_pesan_file(pesan_file_baru)
-                        elif not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru, io_stream_tujuan):
+                        if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
                             self.repository_pesan.tambah_pesan_file(pesan_file_baru)
                             
                             
