@@ -4,7 +4,7 @@ import threading
 # This constant is the same in server. Check it for more information
 # HEADER = 16
 # PORT = 5050
-PORT = 11883
+PORT = 19497
 
 # SERVER = socket.gethostbyname(socket.gethostname())
 SERVER = '0.tcp.ap.ngrok.io'

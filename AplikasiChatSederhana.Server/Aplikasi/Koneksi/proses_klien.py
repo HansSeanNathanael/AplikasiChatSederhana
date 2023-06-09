@@ -21,11 +21,16 @@ class ProsesKlien(threading.Thread):
         
         while True:
             sub_message = self.io_stream.recv(32)
-            
             if not sub_message:
                 break
             
-            sub_message_decoded = sub_message.decode()
+            try:
+                sub_message_decoded = sub_message.decode()
+            except Exception as e:
+                logging.error(f"sub_message: {sub_message}")
+                message = ""
+                continue
+                
             message = message + sub_message_decoded
             
             if message[-4:]=='\r\n\r\n':
