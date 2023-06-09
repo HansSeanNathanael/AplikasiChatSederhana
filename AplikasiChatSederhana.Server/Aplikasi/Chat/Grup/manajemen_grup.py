@@ -1,6 +1,6 @@
 import re
 
-from ...InterfacesJembatan.interface_manajer_jembatan import InterfaceManajerJembatan
+from ...Jembatan.interface_manajer_jembatan import InterfaceManajerJembatan
 
 from ...Repository.repository_akun import RepositoryAkun
 from ...Repository.repository_grup import RepositoryGrup

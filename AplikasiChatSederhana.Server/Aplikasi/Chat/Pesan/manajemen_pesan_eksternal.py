@@ -3,7 +3,7 @@ import re
 import uuid
 
 from .pengirim_pesan import PengirimPesan
-from ...InterfacesJembatan.interface_manajer_jembatan import InterfaceManajerJembatan
+from ...Jembatan.interface_manajer_jembatan import InterfaceManajerJembatan
 
 from ...Repository.repository_akun import RepositoryAkun
 from ...Repository.repository_pesan import RepositoryPesan

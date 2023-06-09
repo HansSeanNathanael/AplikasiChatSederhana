@@ -1,10 +1,10 @@
 import json
 import re
 
-from ..Aplikasi.InterfacesJembatan.interface_manajer_jembatan import InterfaceManajerJembatan
+from .interface_manajer_jembatan import InterfaceManajerJembatan
 
-from ..Aplikasi.Chat.Pesan.Data.pesan_chat import PesanChat
-from ..Aplikasi.Chat.Pesan.Data.pesan_file import PesanFile
+from ..Chat.Pesan.Data.pesan_chat import PesanChat
+from ..Chat.Pesan.Data.pesan_file import PesanFile
 from .daftar_realm import DaftarRealm
 
 class ManajerJembatan(InterfaceManajerJembatan):

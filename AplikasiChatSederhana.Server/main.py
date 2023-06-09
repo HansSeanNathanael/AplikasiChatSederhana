@@ -18,7 +18,7 @@ from Aplikasi.Repository.repository_grup import RepositoryGrup
 from Aplikasi.Repository.repository_pesan import RepositoryPesan
 
 from Aplikasi.Chat.Pesan.pengirim_pesan import PengirimPesan
-from Jembatan.manajer_jembatan import ManajerJembatan
+from Aplikasi.Jembatan.manajer_jembatan import ManajerJembatan
 
 
 if __name__=="__main__":
