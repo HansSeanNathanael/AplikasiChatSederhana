@@ -18,6 +18,7 @@ from Aplikasi.Repository.repository_grup import RepositoryGrup
 from Aplikasi.Repository.repository_pesan import RepositoryPesan
 
 from Aplikasi.Chat.Pesan.pengirim_pesan import PengirimPesan
+from Jembatan.manajer_jembatan import ManajerJembatan
 
 
 if __name__=="__main__":
@@ -28,9 +29,9 @@ if __name__=="__main__":
     lock_database = threading.Lock()
     server = Server(
         pengaturan, daftar_klien, Autentikasi(pengaturan["domain"], daftar_klien, RepositoryAkun(koneksi_database, lock_database)),
-        ManajemenGrup(pengaturan["domain"], None, RepositoryAkun(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)),
+        ManajemenGrup(pengaturan["domain"], ManajerJembatan(), RepositoryAkun(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)),
         ManajemenPesan(
-            pengaturan["domain"], PengirimPesan(daftar_klien), None, 
+            pengaturan["domain"], PengirimPesan(daftar_klien), ManajerJembatan(), 
             RepositoryAkun(koneksi_database, lock_database), RepositoryPesan(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)
         )
     )
@@ -40,7 +41,7 @@ if __name__=="__main__":
     server_untuk_realm_eksternal = ServerUntukRealmEksternal(
         pengaturan, ManajemenGrupEksternal(RepositoryAkun(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)),
         ManajemenPesanEksternal(
-            pengaturan["domain"], PengirimPesan(daftar_klien), None,
+            pengaturan["domain"], PengirimPesan(daftar_klien), ManajerJembatan(),
             RepositoryAkun(koneksi_database, lock_database), RepositoryPesan(koneksi_database, lock_database), RepositoryGrup(koneksi_database, lock_database)
         )
     )
