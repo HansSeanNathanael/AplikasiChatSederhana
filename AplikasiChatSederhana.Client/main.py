@@ -1,0 +1,352 @@
+import flet as ft
+from signin_form import *
+from signup_form import *
+from users_db import *
+from chat_message import *
+from chats_db import *
+from server_connection import Server
+
+def main(page: ft.Page):
+    server = Server('0.tcp.ap.ngrok.io', 16590)
+    db = UsersDB()
+    # thread = threading.Thread(target=listen, daemon=True)
+    # thread.start()
+
+    page.title = "Chat Flet Messenger"
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+    # ***************  Functions             *************
+    def dropdown_changed(e):
+        new_message.value = new_message.value + emoji_list.value
+        page.update()
+
+    def open_dlg_sign_up_success():
+        page.dialog = dlg_sign_up_success
+        dlg_sign_up_success.open = True
+        page.update()
+
+    def open_dlg_sign_un_failed():
+        page.dialog = dlg_sign_up_failed
+        dlg_sign_up_failed.open = True
+        page.update()
+    
+    def open_dlg_sign_in_failed():
+        page.dialog = dlg_sign_in_failed
+        dlg_sign_in_failed.open = True
+        page.update()
+
+    def close_dlg(e):
+        if (dlg_sign_up_success.open):
+            dlg_sign_up_success.open = False
+            page.route = "/"
+        elif (dlg_sign_up_failed.open):
+            dlg_sign_up_failed.open = False
+        elif (dlg_sign_in_failed.open):
+            dlg_sign_in_failed.open = False
+        page.update()
+
+    def sign_in(user: str, password: str):
+        data = server.sign_in(user, password)
+        if "token" in data:
+            if db.write_token_to_db(user, data["token"]):
+                print("Redirecting to chat...")
+                page.session.set("user", user)
+                page.route = "/chat"
+                page.pubsub.send_all(
+                    Message(
+                        user=user,
+                        text=f"{user} has joined the chat.",
+                        message_type="login_message",
+                    )
+                )
+            else :
+                print("Failed to save token to database...")
+        else:
+            print("User no exist ...")
+            open_dlg_sign_in_failed()
+        page.update()
+
+    def sign_up(user: str, password: str):
+        data = server.sign_up(user, password)
+        if "id_akun" in data:
+            print(f'{data["id_akun"]} Successfully Registered User...')
+            open_dlg_sign_up_success()
+        else:
+            print("Register Failed...")
+            open_dlg_sign_un_failed()
+
+    def on_message(message: Message):
+        if message.message_type == "chat_message":
+            m = ChatMessage(message)
+        elif message.message_type == "login_message":
+            m = ft.Text(message.text, italic=True, color=ft.colors.BLACK, size=12)
+        elif message.message_type == "logout_message":
+            m = ft.Text(message.text, italic=True, color=ft.colors.BLACK, size=12)
+        chat.controls.append(m)
+        page.update()
+
+    page.pubsub.subscribe(on_message)
+
+    def send_message_click(e):
+        if new_message.value == "":
+            return
+        chatdb = ChatsDB()
+        chatdb.write_db(page.session.get("user"), new_message.value)
+        page.pubsub.send_all(
+            Message(
+                user=page.session.get("user"),
+                text=new_message.value,
+                message_type="chat_message",
+            )
+        )
+        new_message.value = ""
+        page.update()
+
+    def btn_signin(e):
+        page.route = "/"
+        page.update()
+
+    def btn_signup(e):
+        page.route = "/signup"
+        page.update()
+
+    def btn_exit(e):
+        user = page.session.get("user")
+        data = server.logout(user)
+        if "success" in data:
+            token = db.get_user_token(user)
+            status_delete_token = db.delete_user_token(token)
+            if (status_delete_token):
+                page.pubsub.send_all(
+                    Message(
+                        user=user,
+                        text=f"{user} has logout from the chat.",
+                        message_type="logout_message",
+                    )
+                )
+                page.session.remove("user")
+                page.route = "/"
+                page.update()
+        else :
+            print("Logout Failed")
+
+    # ************          Aplication UI              **********************************
+    principal_content = ft.Column(
+        [
+            ft.Icon(ft.icons.WECHAT, size=200, color=ft.colors.BLUE),
+            ft.Text(value="Realm Kelompok 6", size=50, color=ft.colors.WHITE),
+        ],
+        height=400,
+        width=600,
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    )
+    emoji_list = ft.Dropdown(
+        on_change=dropdown_changed,
+        options=[
+            ft.dropdown.Option("😃"),
+            ft.dropdown.Option("😊"),
+            ft.dropdown.Option("😂"),
+            ft.dropdown.Option("🤔"),
+            ft.dropdown.Option("😭"),
+            ft.dropdown.Option("😉"),
+            ft.dropdown.Option("🤩"),
+            ft.dropdown.Option("🥰"),
+            ft.dropdown.Option("😎"),
+            ft.dropdown.Option("❤️"),
+            ft.dropdown.Option("🔥"),
+            ft.dropdown.Option("✅"),
+            ft.dropdown.Option("✨"),
+            ft.dropdown.Option("👍"),
+            ft.dropdown.Option("🎉"),
+            ft.dropdown.Option("👉"),
+            ft.dropdown.Option("⭐"),
+            ft.dropdown.Option("☀️"),
+            ft.dropdown.Option("👀"),
+            ft.dropdown.Option("👇"),
+            ft.dropdown.Option("🚀"),
+            ft.dropdown.Option("🎂"),
+            ft.dropdown.Option("💕"),
+            ft.dropdown.Option("🏡"),
+            ft.dropdown.Option("🍎"),
+            ft.dropdown.Option("🎁"),
+            ft.dropdown.Option("💯"),
+            ft.dropdown.Option("💤"),
+        ],
+        width=50,
+        value="😃",
+        alignment=ft.alignment.center,
+    )
+
+    signin_UI = SignInForm(sign_in, btn_signup)
+    signup_UI = SignUpForm(sign_up, btn_signin)
+
+    chat = ft.ListView(
+        expand=True,
+        spacing=10,
+        auto_scroll=True,
+    )
+
+    new_message = ft.TextField(
+        hint_text="Write a message...",
+        autofocus=True,
+        shift_enter=True,
+        min_lines=1,
+        max_lines=5,
+        filled=True,
+        expand=True,
+        on_submit=send_message_click,
+    )
+
+    dlg_sign_up_success = ft.AlertDialog(
+        modal=True,
+        title=ft.Container(
+            content=ft.Icon(
+                name=ft.icons.CHECK_CIRCLE_OUTLINED, color=ft.colors.GREEN, size=100
+            ),
+            width=120,
+            height=120,
+        ),
+        content=ft.Text(
+            value="Congratulations\nYour account has been successfully created\nPlease Sign In",
+            text_align=ft.TextAlign.CENTER,
+        ),
+        actions=[
+            ft.ElevatedButton(
+                text="Continue", color=ft.colors.BLACK, on_click=close_dlg
+            )
+        ],
+        actions_alignment="center",
+        on_dismiss=lambda e: print("Dialog dismissed!"),
+    )
+
+    dlg_sign_up_failed = ft.AlertDialog(
+        modal=True,
+        title=ft.Container(
+            content=ft.Icon(
+                name=ft.icons.ERROR_OUTLINE, color=ft.colors.GREEN, size=100
+            ),
+            width=120,
+            height=120,
+        ),
+        content=ft.Text(
+            value="Sorry\nFailed to create an account\nPlease Try Again",
+            text_align=ft.TextAlign.CENTER,
+        ),
+        actions=[
+            ft.ElevatedButton(
+                text="Continue", color=ft.colors.BLACK, on_click=close_dlg
+            )
+        ],
+        actions_alignment="center",
+        on_dismiss=lambda e: print("Dialog dismissed!"),
+    )
+
+    dlg_sign_in_failed = ft.AlertDialog(
+        modal=True,
+        title=ft.Container(
+            content=ft.Icon(
+                name=ft.icons.ERROR_OUTLINE, color=ft.colors.GREEN, size=100
+            ),
+            width=120,
+            height=120,
+        ),
+        content=ft.Text(
+            value="Log In Failed,\nIncorrect User Name or Password\nPlease Try Again",
+            text_align=ft.TextAlign.CENTER,
+        ),
+        actions=[
+            ft.ElevatedButton(
+                text="Continue", color=ft.colors.BLACK, on_click=close_dlg
+            )
+        ],
+        actions_alignment="center",
+        on_dismiss=lambda e: print("Dialog dismissed!"),
+    )
+
+    # chatdb = ChatsDB()
+    # chats = chatdb.read_db(database)
+    # if chats != None:
+    #     for chatItem in chats:
+    #         chat.controls.append(ChatMessage(                            
+    #                     Message(
+    #                         user=chatItem[1],
+    #                         text=chatItem[2],
+    #                         message_type="chat_message",
+    #                     )
+    #                 )
+    #             )
+    # page.update()
+
+    # ****************        Routes              ******************
+    def route_change(route):
+        if page.route == "/":
+            page.clean()
+            page.add(
+                ft.Row(
+                    [principal_content, signin_UI],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                )
+            )
+
+        if page.route == "/signup":
+            page.clean()
+            page.add(
+                ft.Row(
+                    [principal_content, signup_UI],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                )
+            )
+
+        if page.route == "/chat":
+            if page.session.contains_key("user"):
+                page.clean()
+                page.add(
+                    ft.Row(
+                        [
+                            ft.Text(value="Chat Flet Messenger", color=ft.colors.BLACK),
+                            ft.ElevatedButton(
+                                text="Log Out",
+                                bgcolor=ft.colors.CYAN_300,
+                                color=ft.colors.BLACK,
+                                on_click=btn_exit,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    )
+                )
+                page.add(
+                    ft.Container(
+                        content=chat,
+                        border=ft.border.all(1, ft.colors.OUTLINE),
+                        border_radius=5,
+                        padding=10,
+                        expand=True,
+                    )
+                )
+                page.add(
+                    ft.Row(
+                        controls=[
+                            emoji_list,
+                            new_message,
+                            ft.IconButton(
+                                icon=ft.icons.SEND_ROUNDED,
+                                tooltip="Send message",
+                                on_click=send_message_click,
+                            ),
+                        ],
+                    )
+                )
+
+            else:
+                page.route = "/"
+                page.update()
+
+    page.on_route_change = route_change
+    page.add(
+        ft.Row([principal_content, signin_UI], alignment=ft.MainAxisAlignment.CENTER)
+    )
+
+ft.app(target=main, view=ft.WEB_BROWSER)
+# ft.app(target=main)
