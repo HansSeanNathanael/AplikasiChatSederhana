@@ -5,7 +5,7 @@ class Database():
     def __init__(self):
         self.con = sqlite3.connect("database.db", check_same_thread=False)
         self.con.cursor().execute("CREATE TABLE IF NOT EXISTS rooms (id INTEGER PRIMARY KEY, sender TEXT, receiver TEXT)")
-        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY, room_id TEXT, content TEXT, file_path TEXT, is_user TEXT")
+        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY, room_id TEXT, content TEXT, file_path TEXT, is_user TEXT)")
         self.con.cursor().execute("CREATE TABLE IF NOT EXISTS token (id INTEGER PRIMARY KEY, email TEXT, token TEXT, password TEXT)")
 
     
@@ -93,7 +93,6 @@ class Database():
         else :
             cursor.execute(f"SELECT * FROM rooms WHERE sender='{id}'")
             data = cursor.fetchone()
-        print(f"{data}, {data[0]}")
         return data[0]
     
     def get_rooms(self):

@@ -220,9 +220,14 @@ def main(page: ft.Page):
         if "success" in data:
             status_delete_token = db.delete_user_token(token)
             if (status_delete_token):
+                emoji_list.value = "Chat Room"
                 global nekot
                 nekot = ""
-                chat.controls.clear()
+                rooms = db.get_rooms()
+                for roomItem in rooms:
+                    option = find_option(roomItem[0])
+                    if option != None:
+                        emoji_list.options.remove(option)
                 page.pubsub.send_all(
                     Message(
                         user=user,
@@ -235,6 +240,12 @@ def main(page: ft.Page):
                 page.update()
         else :
             print("Logout Failed")
+    
+    def find_option(option_name):
+        for option in emoji_list.options:
+            if option_name == option.key:
+                return option
+        return None
 
     # ************          Aplication UI              **********************************
     principal_content = ft.Column(
