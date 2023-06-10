@@ -48,7 +48,7 @@ class ManajemenPesan:
         
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
         if domain_tujuan == None:
-            return {"error" : "format grup salah"}
+            return {"error" : "format tujuan salah"}
         
         tanggal_diterima = datetime.datetime.now()
         
@@ -102,7 +102,7 @@ class ManajemenPesan:
         
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
         if domain_tujuan == None:
-            return {"error" : "format grup salah"}
+            return {"error" : "format tujuan salah"}
         
         tanggal_diterima = datetime.datetime.now()
         
