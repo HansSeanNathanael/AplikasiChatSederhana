@@ -1,14 +1,15 @@
 import flet as ft
 from signin_form import *
 from signup_form import *
-from users_db import *
+from database import *
 from chat_message import *
-from chats_db import *
 from server_connection import Server
+
+nekot = ""
 
 def main(page: ft.Page):
     server = Server('0.tcp.ap.ngrok.io', 16590)
-    db = UsersDB()
+    db = Database()
     # thread = threading.Thread(target=listen, daemon=True)
     # thread.start()
 
@@ -18,8 +19,45 @@ def main(page: ft.Page):
 
     # ***************  Functions             *************
     def dropdown_changed(e):
-        new_message.value = new_message.value + emoji_list.value
-        page.update()
+        if page.session.contains_key("user"):
+            page.clean()
+            chat.controls.clear()
+            page.add(
+                ft.Row(
+                    controls=[
+                        emoji_list,
+                        ft.ElevatedButton(
+                            text="Log Out",
+                            bgcolor=ft.colors.CYAN_300,
+                            color=ft.colors.BLACK,
+                            on_click=btn_exit,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                )
+            )
+            page.add(
+                ft.Container(
+                    content=chat,
+                    border=ft.border.all(1, ft.colors.OUTLINE),
+                    border_radius=5,
+                    padding=10,
+                    expand=True,
+                )
+            )
+            page.add(
+                ft.Row(
+                    controls=[
+                        new_message,
+                        ft.IconButton(
+                            icon=ft.icons.SEND_ROUNDED,
+                            tooltip="Send message",
+                            on_click=send_message_click,
+                        ),
+                    ],
+                )
+            )
+            # page.update()
 
     def open_dlg_sign_up_success():
         page.dialog = dlg_sign_up_success
@@ -48,8 +86,11 @@ def main(page: ft.Page):
 
     def sign_in(user: str, password: str):
         data = server.sign_in(user, password)
+        print(data)
         if "token" in data:
-            if db.write_token_to_db(user, data["token"]):
+            if db.write_token_to_db(user, data["token"], password):
+                global nekot
+                nekot = data["token"]
                 print("Redirecting to chat...")
                 page.session.set("user", user)
                 page.route = "/chat"
@@ -69,6 +110,7 @@ def main(page: ft.Page):
 
     def sign_up(user: str, password: str):
         data = server.sign_up(user, password)
+        print(data)
         if "id_akun" in data:
             print(f'{data["id_akun"]} Successfully Registered User...')
             open_dlg_sign_up_success()
@@ -91,17 +133,21 @@ def main(page: ft.Page):
     def send_message_click(e):
         if new_message.value == "":
             return
-        chatdb = ChatsDB()
-        chatdb.write_db(page.session.get("user"), new_message.value)
-        page.pubsub.send_all(
-            Message(
-                user=page.session.get("user"),
-                text=new_message.value,
-                message_type="chat_message",
+        global nekot
+        usr = page.session.get("user")
+        data = server.send_chat(nekot, "graidy@kelompok6.co.id", new_message.value)
+        if "success" in data:
+            print(data)
+            db.write_chat(usr, new_message.value)
+            page.pubsub.send_all(
+                Message(
+                    user=usr,
+                    text=new_message.value,
+                    message_type="chat_message",
+                )
             )
-        )
-        new_message.value = ""
-        page.update()
+            new_message.value = ""
+            page.update()
 
     def btn_signin(e):
         page.route = "/"
@@ -113,11 +159,14 @@ def main(page: ft.Page):
 
     def btn_exit(e):
         user = page.session.get("user")
-        data = server.logout(user)
+        token = db.get_user_token(user)
+        data = server.logout(token)
         if "success" in data:
-            token = db.get_user_token(user)
             status_delete_token = db.delete_user_token(token)
             if (status_delete_token):
+                global nekot
+                nekot = ""
+                chat.controls.clear()
                 page.pubsub.send_all(
                     Message(
                         user=user,
@@ -145,7 +194,7 @@ def main(page: ft.Page):
     emoji_list = ft.Dropdown(
         on_change=dropdown_changed,
         options=[
-            ft.dropdown.Option("😃"),
+            ft.dropdown.Option("Chat Room"),
             ft.dropdown.Option("😊"),
             ft.dropdown.Option("😂"),
             ft.dropdown.Option("🤔"),
@@ -174,8 +223,7 @@ def main(page: ft.Page):
             ft.dropdown.Option("💯"),
             ft.dropdown.Option("💤"),
         ],
-        width=50,
-        value="😃",
+        value="Chat Room",
         alignment=ft.alignment.center,
     )
 
@@ -301,11 +349,15 @@ def main(page: ft.Page):
 
         if page.route == "/chat":
             if page.session.contains_key("user"):
+                global nekot
+                data = server.get_inbox(nekot)
+                print(data)
+
                 page.clean()
                 page.add(
                     ft.Row(
-                        [
-                            ft.Text(value="Chat Flet Messenger", color=ft.colors.BLACK),
+                        controls=[
+                            emoji_list,
                             ft.ElevatedButton(
                                 text="Log Out",
                                 bgcolor=ft.colors.CYAN_300,
@@ -328,7 +380,6 @@ def main(page: ft.Page):
                 page.add(
                     ft.Row(
                         controls=[
-                            emoji_list,
                             new_message,
                             ft.IconButton(
                                 icon=ft.icons.SEND_ROUNDED,
@@ -348,5 +399,15 @@ def main(page: ft.Page):
         ft.Row([principal_content, signin_UI], alignment=ft.MainAxisAlignment.CENTER)
     )
 
+
 ft.app(target=main, view=ft.WEB_BROWSER)
 # ft.app(target=main)
+
+if(nekot != ""):
+    server = Server('0.tcp.ap.ngrok.io', 16590)
+    db = Database()
+    data = server.logout(nekot)
+    if "success" in data:
+        print(data["success"])
+        db.delete_user_token(nekot)
+    

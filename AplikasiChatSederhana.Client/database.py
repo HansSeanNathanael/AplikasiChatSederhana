@@ -1,9 +1,12 @@
 import sqlite3
 from sqlite3 import Connection
 
-class UsersDB():
+class Database():
     def __init__(self):
         self.con = sqlite3.connect("database.db", check_same_thread=False)
+        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY, email TEXT, message TEXT)")
+        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS token (id INTEGER PRIMARY KEY, email TEXT, token TEXT, password TEXT)")
+
     
     # def read_db(self, user_email:str, password:str):
     #     cursor = self.con.cursor()  
@@ -27,6 +30,7 @@ class UsersDB():
         cursor = self.con.cursor()  
         cursor.execute(f"DELETE FROM token WHERE token='{token}'")
         row_count = cursor.rowcount
+        self.con.commit()
         if row_count > 0:
             print(f"Deletion successful. {row_count} row(s) deleted.")
             return True
@@ -41,10 +45,25 @@ class UsersDB():
     #     self.con.commit()
     #     return True
     
-    def write_token_to_db(self, user_email:str, token:str):
+    def write_token_to_db(self, user_email:str, token:str, password:str):
         cursor = self.con.cursor() 
-        cursor.execute("CREATE TABLE IF NOT EXISTS token (id INTEGER PRIMARY KEY, email TEXT, token TEXT)")
-        cursor.execute(f"INSERT INTO token (email, token) VALUES ('{user_email}', '{token}')")
+        cursor.execute(f"INSERT INTO token (email, token, password) VALUES ('{user_email}', '{token}', '{password}')")
         print("Write Token...")
         self.con.commit()
         return True
+    
+    def get_chat(self):
+        cursor = self.con.cursor()  
+        cursor.execute("SELECT * FROM chats")
+        chat = cursor.fetchall()
+        if chat:
+            return chat
+        return None
+    
+  
+    def write_chat(self, user_email:str, message:str):
+        cursor = self.con.cursor() 
+        cursor.execute(f"INSERT INTO chats (email, message) VALUES ('{user_email}', '{message}')")
+        self.con.commit()
+        return True
+
