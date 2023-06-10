@@ -10,14 +10,17 @@ class Server():
         self.client.connect((SERVER, PORT))
         self.isListening = True
         self.thread = threading.Thread(target=self.listen, daemon=True)
-        self.receiveSize = 256
+        self.receiveSize = 8192
 
-    # FORMAT = 'utf-8'
-    # PORT = 16590
-    # SERVER = '0.tcp.ap.ngrok.io'
-    # ADDR = (SERVER, PORT)
-    # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # client.connect(ADDR)
+    def receive_all_data(self):
+        received_data = ""
+        while True:
+            data = self.client.recv(self.receiveSize)
+            if not data:
+                break
+            received_data += data.decode(self.FORMAT)
+        print("KELUAR WHILE")
+        return received_data
 
     def get_awalan_id(email:str):
         match = re.match(r'(.*?)@kelompok6\.co\.id', email)
@@ -73,7 +76,10 @@ class Server():
         return json.loads(status)
     
     def send_chat(self, token:str, email_tujuan:str, chat_content:str):
-        self.send(f"CHAT {token} {email_tujuan} {chat_content}")
+        s = "\r\n"
+        msg = f"CHAT{s}{token}{s}{email_tujuan}{s}{chat_content}{s}{s}"
+        message = msg.encode(self.FORMAT)
+        self.client.send(message)
         status = self.client.recv(self.receiveSize).decode(self.FORMAT)
         return json.loads(status)
     
@@ -84,6 +90,7 @@ class Server():
     
     def get_inbox(self, token:str):
         self.send(f"INBOX {token}")
+        # status = self.receive_all_data()
         status = self.client.recv(self.receiveSize).decode(self.FORMAT)
-        print(status)
+        # print(status)
         return json.loads(status)

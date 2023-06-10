@@ -4,7 +4,8 @@ from sqlite3 import Connection
 class Database():
     def __init__(self):
         self.con = sqlite3.connect("database.db", check_same_thread=False)
-        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY, email TEXT, message TEXT)")
+        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS rooms (id INTEGER PRIMARY KEY, sender TEXT, receiver TEXT)")
+        self.con.cursor().execute("CREATE TABLE IF NOT EXISTS chats (id INTEGER PRIMARY KEY, room_id TEXT, content TEXT, file_path TEXT, is_user TEXT")
         self.con.cursor().execute("CREATE TABLE IF NOT EXISTS token (id INTEGER PRIMARY KEY, email TEXT, token TEXT, password TEXT)")
 
     
@@ -52,18 +53,76 @@ class Database():
         self.con.commit()
         return True
     
-    def get_chat(self):
+    def get_chat(self, room_id:int):
         cursor = self.con.cursor()  
-        cursor.execute("SELECT * FROM chats")
+        cursor.execute(f"SELECT * FROM chats WHERE room_id='{room_id}'")
         chat = cursor.fetchall()
         if chat:
             return chat
         return None
     
-  
-    def write_chat(self, user_email:str, message:str):
+    def write_chat(self, room_id:str, content:str, file_path:str, is_user:str = "0"):
         cursor = self.con.cursor() 
-        cursor.execute(f"INSERT INTO chats (email, message) VALUES ('{user_email}', '{message}')")
+        cursor.execute(f"INSERT INTO chats (room_id, content, file_path, is_user) VALUES ('{room_id}', '{content}', '{file_path}', '{is_user}')")
         self.con.commit()
         return True
+    
+    def write_room(self, sender:str, rec:str):
+        cursor = self.con.cursor() 
+        cursor.execute(f"INSERT INTO rooms (sender, receiver) VALUES ('{sender}', '{rec}')")
+        self.con.commit()
+        return True
+
+    def is_room_exist(self, id:str, type:str):
+        cursor = self.con.cursor() 
+        if type == "GROUP" :
+            cursor.execute(f"SELECT * FROM rooms WHERE receiver='{id}'")
+            data = cursor.fetchone()
+        else :
+            cursor.execute(f"SELECT * FROM rooms WHERE sender='{id}'")
+            data = cursor.fetchone()
+        if data:
+            return True
+        return False
+    
+    def get_room(self, id:str, type:str):
+        cursor = self.con.cursor() 
+        if type == "GROUP" :
+            cursor.execute(f"SELECT * FROM rooms WHERE receiver='{id}'")
+            data = cursor.fetchone()
+        else :
+            cursor.execute(f"SELECT * FROM rooms WHERE sender='{id}'")
+            data = cursor.fetchone()
+        print(f"{data}, {data[0]}")
+        return data[0]
+    
+    def get_rooms(self):
+        cursor = self.con.cursor() 
+        cursor.execute(f"SELECT * FROM rooms")
+        data = cursor.fetchall()
+        return data
+    
+    def get_user_from_private_room(self, id:int):
+        cursor = self.con.cursor() 
+        cursor.execute(f"SELECT * FROM rooms WHERE id='{id}'")
+        data = cursor.fetchone()
+        if data:
+            return data[1]
+        return None
+    
+    def get_group_room_name(self, id:int):
+        cursor = self.con.cursor() 
+        cursor.execute(f"SELECT * FROM rooms WHERE id='{id}'")
+        data = cursor.fetchone()
+        if data:
+            return data[2]
+        return None
+    
+    def is_group_room(self, id:str):
+        cursor = self.con.cursor() 
+        cursor.execute(f"SELECT * FROM rooms WHERE receiver='{id}'")
+        data = cursor.fetchone()
+        if data:
+            return True
+        return False
 

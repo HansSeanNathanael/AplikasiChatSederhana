@@ -22,10 +22,64 @@ def main(page: ft.Page):
         if page.session.contains_key("user"):
             page.clean()
             chat.controls.clear()
+
+            roomId = emoji_list.value
+            isGroupRoom = db.is_group_room(roomId)
+            user_logged_in = page.session.get('user')
+            room_title = "Group"
+            chats = db.get_chat(roomId)
+            if (isGroupRoom):
+                room_title = db.get_group_room_name(roomId)
+                if chats:
+                    for chatItem in chats:
+                        if (chatItem[4] == "1"):
+                            chat.controls.append(ChatMessage(                            
+                                    Message(
+                                        user=user_logged_in,
+                                        text=chatItem[2],
+                                        message_type="chat_message",
+                                    )
+                                )
+                            )
+                        else:
+                            chat.controls.append(ChatMessage(                            
+                                    Message(
+                                        user=room_title,
+                                        text=chatItem[2],
+                                        message_type="chat_message",
+                                    )
+                                )
+                            )
+            else:
+                room_title = db.get_user_from_private_room(roomId)
+                if chats:
+                    for chatItem in chats:
+                        if (chatItem[4] == "1"):
+                            chat.controls.append(ChatMessage(                            
+                                    Message(
+                                        user=user_logged_in,
+                                        text=chatItem[2],
+                                        message_type="chat_message",
+                                    )
+                                )
+                            )
+                        else:
+                            chat.controls.append(ChatMessage(                            
+                                    Message(
+                                        user=room_title,
+                                        text=chatItem[2],
+                                        message_type="chat_message",
+                                    )
+                                )
+                            )
+            page.session.set("curr_receiver", room_title)
+            page.session.set("room_id", roomId)
+
             page.add(
                 ft.Row(
                     controls=[
                         emoji_list,
+                        ft.Text(value=room_title, color=ft.colors.BLACK),
                         ft.ElevatedButton(
                             text="Log Out",
                             bgcolor=ft.colors.CYAN_300,
@@ -57,7 +111,7 @@ def main(page: ft.Page):
                     ],
                 )
             )
-            # page.update()
+            page.update()
 
     def open_dlg_sign_up_success():
         page.dialog = dlg_sign_up_success
@@ -135,10 +189,12 @@ def main(page: ft.Page):
             return
         global nekot
         usr = page.session.get("user")
-        data = server.send_chat(nekot, "graidy@kelompok6.co.id", new_message.value)
+        curr_rec = page.session.get("curr_receiver")
+        room_id = page.session.get("room_id")
+        data = server.send_chat(nekot, curr_rec, new_message.value)
         if "success" in data:
             print(data)
-            db.write_chat(usr, new_message.value)
+            db.write_chat(room_id, new_message.value, "", "1")
             page.pubsub.send_all(
                 Message(
                     user=usr,
@@ -195,33 +251,6 @@ def main(page: ft.Page):
         on_change=dropdown_changed,
         options=[
             ft.dropdown.Option("Chat Room"),
-            ft.dropdown.Option("😊"),
-            ft.dropdown.Option("😂"),
-            ft.dropdown.Option("🤔"),
-            ft.dropdown.Option("😭"),
-            ft.dropdown.Option("😉"),
-            ft.dropdown.Option("🤩"),
-            ft.dropdown.Option("🥰"),
-            ft.dropdown.Option("😎"),
-            ft.dropdown.Option("❤️"),
-            ft.dropdown.Option("🔥"),
-            ft.dropdown.Option("✅"),
-            ft.dropdown.Option("✨"),
-            ft.dropdown.Option("👍"),
-            ft.dropdown.Option("🎉"),
-            ft.dropdown.Option("👉"),
-            ft.dropdown.Option("⭐"),
-            ft.dropdown.Option("☀️"),
-            ft.dropdown.Option("👀"),
-            ft.dropdown.Option("👇"),
-            ft.dropdown.Option("🚀"),
-            ft.dropdown.Option("🎂"),
-            ft.dropdown.Option("💕"),
-            ft.dropdown.Option("🏡"),
-            ft.dropdown.Option("🍎"),
-            ft.dropdown.Option("🎁"),
-            ft.dropdown.Option("💯"),
-            ft.dropdown.Option("💤"),
         ],
         value="Chat Room",
         alignment=ft.alignment.center,
@@ -350,9 +379,31 @@ def main(page: ft.Page):
         if page.route == "/chat":
             if page.session.contains_key("user"):
                 global nekot
-                data = server.get_inbox(nekot)
-                print(data)
 
+                # Inbox Feature
+                data = server.get_inbox(nekot)
+                for keys, values in data.items():
+                    # print(keys, values)
+                    for value in values:                
+                        if value["keperluan"] == "PRIVATE":
+                            isExist = db.is_room_exist(value['id_pengirim'], value['keperluan'])
+                            if not isExist:
+                                db.write_room(value['id_pengirim'], "")
+                            roomId = db.get_room(value['id_pengirim'], value['keperluan'])
+                            # emoji_list.options.append(ft.dropdown.Option(roomId))
+                            db.write_chat(roomId, value["chat"], "")
+                        else:
+                            isExist = db.is_room_exist(value['id_tujuan'], value['keperluan'])
+                            if not isExist:
+                                db.write_room(value['id_tujuan'], value['id_pengirim'])
+                            roomId = db.get_room(value['id_tujuan'], value['keperluan'])
+                            # emoji_list.options.append(ft.dropdown.Option(roomId))
+                            db.write_chat(roomId, value["chat"], "")
+                
+                rooms = db.get_rooms()
+                for room in rooms:
+                    emoji_list.options.append(ft.dropdown.Option(room[0]))
+                
                 page.clean()
                 page.add(
                     ft.Row(
@@ -368,27 +419,27 @@ def main(page: ft.Page):
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     )
                 )
-                page.add(
-                    ft.Container(
-                        content=chat,
-                        border=ft.border.all(1, ft.colors.OUTLINE),
-                        border_radius=5,
-                        padding=10,
-                        expand=True,
-                    )
-                )
-                page.add(
-                    ft.Row(
-                        controls=[
-                            new_message,
-                            ft.IconButton(
-                                icon=ft.icons.SEND_ROUNDED,
-                                tooltip="Send message",
-                                on_click=send_message_click,
-                            ),
-                        ],
-                    )
-                )
+                # page.add(
+                #     ft.Container(
+                #         content=chat,
+                #         border=ft.border.all(1, ft.colors.OUTLINE),
+                #         border_radius=5,
+                #         padding=10,
+                #         expand=True,
+                #     )
+                # )
+                # page.add(
+                #     ft.Row(
+                #         controls=[
+                #             new_message,
+                #             ft.IconButton(
+                #                 icon=ft.icons.SEND_ROUNDED,
+                #                 tooltip="Send message",
+                #                 on_click=send_message_click,
+                #             ),
+                #         ],
+                #     )
+                # )
 
             else:
                 page.route = "/"
