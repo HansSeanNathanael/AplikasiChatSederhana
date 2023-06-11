@@ -32,9 +32,12 @@ class ManajemenPesan:
         self.repository_pesan = repository_pesan
         self.repository_grup = repository_grup
         
-    def dapatkan_realm_tujuan(self, id_user : str) -> str:
+    def dapatkan_realm_tujuan(self, id_user : str) -> str|None:
         pattern = r"(?<=@)(\S+)"
-        return re.search(pattern, id_user).group()
+        daftar_domain = re.search(pattern, id_user)
+        if daftar_domain == None:
+            return None
+        return daftar_domain.group()
         
     def mengirim_chat(self, token : str, id_tujuan : str, isi_chat : str) -> dict:
         
@@ -44,6 +47,8 @@ class ManajemenPesan:
             return {"error" : "autentikasi salah"}
         
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
+        if domain_tujuan == None:
+            return {"error" : "format tujuan salah"}
         
         tanggal_diterima = datetime.datetime.now()
         
@@ -72,17 +77,17 @@ class ManajemenPesan:
                 
                 if id_anggota != pengirim.id:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
-                    
-                    data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_anggota, tujuan.id, "chat", tanggal_diterima)
-                    pesan_chat_baru = PesanChat(data_pesan, isi_chat)
-                    
-                    if domain_tujuan != self.domain:
-                        self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
-                    
-                    else:
-                        if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
-                            self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
-                            
+                    if domain_tujuan != None:
+                        data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_anggota, tujuan.id, "chat", tanggal_diterima)
+                        pesan_chat_baru = PesanChat(data_pesan, isi_chat)
+                        
+                        if domain_tujuan != self.domain:
+                            self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
+                        
+                        else:
+                            if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
+                                self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
+                                
                             
         return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima.strftime("%d-%m-%Y %H:%M:%S")}
     
@@ -96,6 +101,8 @@ class ManajemenPesan:
             return {"error" : "autentikasi salah"}
         
         domain_tujuan = self.dapatkan_realm_tujuan(id_tujuan)
+        if domain_tujuan == None:
+            return {"error" : "format tujuan salah"}
         
         tanggal_diterima = datetime.datetime.now()
         
@@ -124,14 +131,15 @@ class ManajemenPesan:
                 if id_anggota != pengirim.id:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_anggota, tujuan.id, "file", tanggal_diterima)
-                    pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
-                    
-                    if domain_tujuan != self.domain:
-                        return self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
-                    else:
-                        if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
-                            self.repository_pesan.tambah_pesan_file(pesan_file_baru)
+                    if domain_tujuan != None:
+                        data_pesan = Pesan(str(uuid.uuid4()), pengirim.id, id_anggota, tujuan.id, "file", tanggal_diterima)
+                        pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
+                        
+                        if domain_tujuan != self.domain:
+                            return self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
+                        else:
+                            if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
+                                self.repository_pesan.tambah_pesan_file(pesan_file_baru)
                             
                             
         return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima.strftime("%d-%m-%Y %H:%M:%S")}

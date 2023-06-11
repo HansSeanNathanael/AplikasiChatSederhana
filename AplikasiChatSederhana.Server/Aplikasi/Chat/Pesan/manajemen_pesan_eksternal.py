@@ -56,14 +56,15 @@ class ManajemenPesanEksternal:
                 if id_anggota != id_pengirim:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_anggota, tujuan.id, "chat", tanggal_diterima)
-                    pesan_chat_baru = PesanChat(data_pesan, isi_chat)
-                    
-                    if domain_tujuan != self.domain:
-                        self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
-                    else:
-                        if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
-                            self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
+                    if domain_tujuan != None:
+                        data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_anggota, tujuan.id, "chat", tanggal_diterima)
+                        pesan_chat_baru = PesanChat(data_pesan, isi_chat)
+                        
+                        if domain_tujuan != self.domain:
+                            self.interface_manajer_jembatan.kirim_pesan_chat(pesan_chat_baru)
+                        else:
+                            if not self.pengirim_pesan.kirim_pesan_chat(pesan_chat_baru):
+                                self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
                             
                             
         return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}
@@ -101,14 +102,15 @@ class ManajemenPesanEksternal:
                 if id_anggota != id_pengirim:
                     domain_tujuan = self.dapatkan_realm_tujuan(id_anggota)
                     
-                    data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_anggota, tujuan.id, "file", tanggal_diterima)
-                    pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
-                    
-                    if domain_tujuan != self.domain:
-                        self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
-                    else:
-                        if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
-                            self.repository_pesan.tambah_pesan_file(pesan_file_baru)
+                    if domain_tujuan != None:
+                        data_pesan = Pesan(str(uuid.uuid4()), id_pengirim, id_anggota, tujuan.id, "file", tanggal_diterima)
+                        pesan_file_baru = PesanFile(data_pesan, nama_file, isi_file_base64)
+                        
+                        if domain_tujuan != self.domain:
+                            self.interface_manajer_jembatan.kirim_pesan_file(pesan_file_baru)
+                        else:
+                            if not self.pengirim_pesan.kirim_pesan_file(pesan_file_baru):
+                                self.repository_pesan.tambah_pesan_file(pesan_file_baru)
                             
                             
         return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}

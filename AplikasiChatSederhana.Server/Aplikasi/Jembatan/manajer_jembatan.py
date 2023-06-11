@@ -12,9 +12,12 @@ class ManajerJembatan(InterfaceManajerJembatan):
         self.daftar_realm = DaftarRealm()
         InterfaceManajerJembatan.__init__(self)
     
-    def dapatkan_realm_tujuan(self, id_user : str) -> str:
+    def dapatkan_realm_tujuan(self, id_user : str) -> str|None:
         pattern = r"(?<=@)(\S+)"
-        return re.search(pattern, id_user).group()
+        daftar_domain = re.search(pattern, id_user)
+        if daftar_domain == None:
+            return None
+        return daftar_domain.group()
 
     def gabung_grup(self, id_user : str, id_grup : str, password : str) -> dict:
         realm_tujuan = self.dapatkan_realm_tujuan(id_grup)

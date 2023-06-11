@@ -15,9 +15,12 @@ class ManajemenGrup:
         self.repository_grup = repository_grup
     
         
-    def dapatkan_realm_tujuan(self, id_user : str) -> str:
+    def dapatkan_realm_tujuan(self, id_user : str) -> str|None:
         pattern = r"(?<=@)(\S+)"
-        return re.search(pattern, id_user).group()
+        daftar_domain = re.search(pattern, id_user)
+        if daftar_domain == None:
+            return None
+        return daftar_domain.group()
     
       
     def buat_grup(self, token : str, id_awalan_grup : str, password : str) -> dict:
@@ -45,6 +48,8 @@ class ManajemenGrup:
             return {"error" : "autentikasi salah"}
         
         realm_tujuan = self.dapatkan_realm_tujuan(id_grup)
+        if realm_tujuan == None:
+            return {"error" : "format grup salah"}
         
         if realm_tujuan == self.domain:
             grup_tujuan = self.repository_akun.ambil_dari_id(id_grup)
@@ -74,6 +79,8 @@ class ManajemenGrup:
             return {"error" : "autentikasi salah"}
         
         realm_tujuan = self.dapatkan_realm_tujuan(id_grup)
+        if realm_tujuan == None:
+            return {"error" : "format grup salah"}
         
         if realm_tujuan == self.domain:
             self.repository_grup.hapus_angggota(id_grup, user.id)
