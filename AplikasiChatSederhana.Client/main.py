@@ -74,7 +74,6 @@ def main(page: ft.Page):
                 )
             else:
                 # server.stopListen()
-                server.startListen()
                 
                 roomId = emoji_list.value
                 isGroupRoom = db.is_group_room(roomId)

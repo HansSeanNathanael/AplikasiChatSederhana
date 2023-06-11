@@ -53,6 +53,7 @@ class Server():
     def listen(self):
         global isListening
         global gblMsg
+        print("[THREAD STOP]")
         while True:
             # if self.isListening == False:
             #     break
@@ -64,11 +65,11 @@ class Server():
                 sleep(2)
             gblMsg = self.receive_all_data_listen()
             sleep(5)
-            print("[REWRITE gblMsg] ")
             if(gblMsg != ""):
                 print("[LIVECHAT]" + gblMsg)
+                print("[REWRITE gblMsg] ")
                 gblMsg = ""
-        print("Thread Stop")
+        print("[THREAD STOP]")
 
     def send(self, msg):
         msg = msg.replace(' ',"\r\n") + '\r\n\r\n'
@@ -80,7 +81,7 @@ class Server():
         global isListening
         if (isListening == False):
             isListening = True
-            print("start listen")
+            print("[LISTENING]")
             # self.thread.start()
             threading.Thread(target=self.listen, daemon=True).start()
 
@@ -88,7 +89,7 @@ class Server():
         # self.isListening = False
         global isListening
         isListening = False
-        print("stop listen")
+        print("[STOP LISTENING]")
 
     def sign_in(self, user:str, password:str):
         self.send(f"LOGIN {user} {password}")
@@ -108,22 +109,22 @@ class Server():
         return json.loads(status)
     
     def logout(self, token:str):
-        # self.stopListen()
 
         self.send(f"LOGOUT {token}")
         global gblMsg
         # status = self.receive_all_data()
 
-        print(gblMsg)
+        print("[LOGOUT gblMsg 1]" + gblMsg)
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
         while(gblMsg == ""):
             sleep(2)
-        
+        print("[LOGOUT gblMsg 2]" + gblMsg)
         
         
         temp = gblMsg
+        self.stopListen()
         gblMsg = ""
-        print("[LOGOUT]")
+        print("[LOGOUT]" + temp)
         return json.loads(temp)
     
     def create_group(self, token:str, email:str, password:str):
@@ -241,5 +242,5 @@ class Server():
         #     sleep(2)
 
         
-
+        self.startListen()
         return json.loads(status)
