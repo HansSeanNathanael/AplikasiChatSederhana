@@ -1,4 +1,5 @@
 import flet as ft
+import base64
 from signin_form import *
 from signup_form import *
 from database import *
@@ -9,12 +10,11 @@ nekot = ""
 
 def main(page: ft.Page):
     # server = Server('0.tcp.ap.ngrok.io', 16590)
-    # server = Server('0.tcp.ap.ngrok.io', 19955)
-    server = Server('127.0.0.1', 9000)
+    server = Server('0.tcp.ap.ngrok.io', 19955)
+    # server = Server('127.0.0.1', 9000)
     db = Database()
     # thread = threading.Thread(target=listen, daemon=True)
     # thread.start()
-
     page.title = "Chat Flet Messenger"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -73,6 +73,9 @@ def main(page: ft.Page):
                     )
                 )
             else:
+                server.stopListen()
+                server.startListen()
+                
                 roomId = emoji_list.value
                 isGroupRoom = db.is_group_room(roomId)
                 user_logged_in = page.session.get('user')
@@ -155,7 +158,7 @@ def main(page: ft.Page):
                                 icon=ft.icons.ADD,
                                 icon_size=40,
                                 tooltip="Add File",
-                                on_click=add_file_click
+                                on_click=dialog_picker_file
                             ),
                             new_message,
                             ft.IconButton(
@@ -278,10 +281,26 @@ def main(page: ft.Page):
         add_new_receiver_edit_text.value = ""
         page.update()
 
-    def add_file_click(e):
+    def dialog_picker_file(e):
+        page.dialog = dlg_ask_file
+        dlg_ask_file.open = True
+        page.update()
+    
+    def close_dlg_ask_file(e):
+        dlg_ask_file.open = False
+        page.update()
 
-        print("add file clicked")
-        return
+        file_name = "sendFile/" + file_name_tf.value
+
+        with open(file_name, "rb") as img_file:
+            my_string = base64.b64encode(img_file.read()).decode()
+
+        curr_rec = page.session.get("curr_receiver")
+        global nekot
+
+        # print("tes" + my_string + "tes")
+        server.send_file(nekot, curr_rec, file_name_tf.value, my_string)
+        file_name_tf.value = ""
 
     def btn_signin(e):
         page.route = "/"
@@ -366,6 +385,17 @@ def main(page: ft.Page):
         on_submit=send_message_click,
     )
 
+    file_name_tf = ft.TextField(
+        hint_text="Write file name...",
+        autofocus=True,
+        shift_enter=True,
+        min_lines=1,
+        max_lines=5,
+        filled=True,
+        expand=True,
+        on_submit=close_dlg_ask_file
+    )
+
     add_new_receiver_edit_text = ft.TextField(
         hint_text="Tuliskan id tujuan",
         autofocus=True,
@@ -393,6 +423,18 @@ def main(page: ft.Page):
         actions=[
             ft.ElevatedButton(
                 text="Continue", color=ft.colors.BLACK, on_click=close_dlg
+            )
+        ],
+        actions_alignment="center",
+        on_dismiss=lambda e: print("Dialog dismissed!"),
+    )
+
+    dlg_ask_file = ft.AlertDialog(
+        modal=True,
+        content=file_name_tf,
+        actions=[
+            ft.ElevatedButton(
+                text="Continue", color=ft.colors.BLACK, on_click=close_dlg_ask_file
             )
         ],
         actions_alignment="center",
@@ -492,14 +534,30 @@ def main(page: ft.Page):
                                 db.write_room(value['id_pengirim'], "")
                             roomId = db.get_room(value['id_pengirim'], value['keperluan'])
                             # emoji_list.options.append(ft.dropdown.Option(roomId))
-                            db.write_chat(roomId, value["chat"], "")
+                            if value['bentuk_chat'] == "CHAT" :
+                                db.write_chat(roomId, value["chat"], "")
+                            else :
+                                db.write_chat(roomId, value["nama_file"], "")
+                                isifile = base64.b64decode(value["isi_file"])
+                                fp = open("receivedFile/" + value["nama_file"],'wb+')
+                                fp.write(isifile)
+                                fp.close()
+                                print("Berhasil")
                         else:
                             isExist = db.is_room_exist(value['id_tujuan'], value['keperluan'])
                             if not isExist:
                                 db.write_room(value['id_tujuan'], value['id_pengirim'])
                             roomId = db.get_room(value['id_tujuan'], value['keperluan'])
                             # emoji_list.options.append(ft.dropdown.Option(roomId))
-                            db.write_chat(roomId, value["chat"], "")
+                            if value['bentuk_chat'] == "CHAT" :
+                                db.write_chat(roomId, value["chat"], "")
+                            else :
+                                db.write_chat(roomId, value["nama_file"], "")
+                                isifile = base64.b64decode(value["isi_file"])
+                                fp = open("receivedFile/" + value["nama_file"],'wb+')
+                                fp.write(isifile)
+                                fp.close()
+                                print("Berhasil")
                 
                 rooms = db.get_rooms()
                 for room in rooms:
@@ -538,8 +596,8 @@ ft.app(target=main, view=ft.WEB_BROWSER)
 # ft.app(target=main)
 
 if(nekot != ""):
-    # server = Server('0.tcp.ap.ngrok.io', 19955)
-    server = Server('127.0.0.1', 9000)
+    server = Server('0.tcp.ap.ngrok.io', 19955)
+    # server = Server('127.0.0.1', 9000)
     db = Database()
     data = server.logout(nekot)
     if "success" in data:

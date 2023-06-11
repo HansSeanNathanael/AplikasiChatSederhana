@@ -3,13 +3,15 @@ import threading
 import json
 import re
 
+isListening = True
+
 class Server():
     def __init__(self, SERVER:str, PORT:int):
         self.FORMAT='utf-8'
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((SERVER, PORT))
-        self.isListening = True
-        self.thread = threading.Thread(target=self.listen, daemon=True)
+        # self.isListening = True
+        # self.thread = threading.Thread(target=self.listen, daemon=True)
         self.receiveSize = 32
 
     def receive_all_data(self):
@@ -34,9 +36,15 @@ class Server():
             return None
     
     def listen(self):
-        while self.isListening:
-            msg = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        global isListening
+        while True:
+            # if self.isListening == False:
+            #     break
+            if isListening == False:
+                break
+            msg = self.receive_all_data()
             print(f"[BROADCAST] {msg}")
+        print("Thread Stop")
 
     def send(self, msg):
         msg = msg.replace(' ',"\r\n") + '\r\n\r\n'
@@ -44,10 +52,18 @@ class Server():
         self.client.send(message)
 
     def startListen(self):
-        self.thread.start()
+        # self.isListening = True
+        global isListening
+        isListening = True
+        print("start listen")
+        # self.thread.start()
+        threading.Thread(target=self.listen, daemon=True).start()
 
     def stopListen(self):
-        self.isListening = False
+        # self.isListening = False
+        global isListening
+        isListening = False
+        print("stop listen")
 
     def sign_in(self, user:str, password:str):
         self.send(f"LOGIN {user} {password}")
@@ -64,42 +80,62 @@ class Server():
         return json.loads(status)
     
     def logout(self, token:str):
+        self.stopListen()
+
         self.send(f"LOGOUT {token}")
         status = self.receive_all_data()
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
         return json.loads(status)
     
     def create_group(self, token:str, email:str, password:str):
+        self.stopListen()
+
         self.send(f"BUAT_GRUP {token} {self.get_awalan_id(email)} {password}")
         status = self.receive_all_data()        
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+
+        self.startListen()
         return json.loads(status)
     
     def join_group(self, token:str, id_grup:str, password:str):
+        self.stopListen()
+        
         self.send(f"GABUNG_GRUP {token} {id_grup} {password}")
         status = self.receive_all_data()
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+
+        self.startListen()
         return json.loads(status)
     
-    def join_group(self, token:str, id_grup:str):
+    def keluar_group(self, token:str, id_grup:str):
+        self.stopListen()
+
         self.send(f"KELUAR_GRUP {token} {id_grup}")
         status = self.receive_all_data()
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
         return json.loads(status)
     
     def send_chat(self, token:str, email_tujuan:str, chat_content:str):
+        self.stopListen()
+
         s = "\r\n"
         msg = f"CHAT{s}{token}{s}{email_tujuan}{s}{chat_content}{s}{s}"
         message = msg.encode(self.FORMAT)
         self.client.send(message)
         status = self.receive_all_data()
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+
+        self.startListen()
         return json.loads(status)
     
-    def send_file(self, token:str, email_tujuan:str, nama_file:str, isi_file):
+    def send_file(self, token:str, email_tujuan:str, nama_file:str, isi_file:str):
+        self.stopListen()
+
         self.send(f"FILE {token} {email_tujuan} {nama_file} {isi_file}")
         status = self.receive_all_data()
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+
+        self.startListen()
         return json.loads(status)
     
     def get_inbox(self, token:str):
