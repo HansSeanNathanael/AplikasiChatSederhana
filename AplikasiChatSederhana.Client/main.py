@@ -8,7 +8,9 @@ from server_connection import Server
 nekot = ""
 
 def main(page: ft.Page):
-    server = Server('0.tcp.ap.ngrok.io', 16590)
+    # server = Server('0.tcp.ap.ngrok.io', 16590)
+    server = Server('0.tcp.ap.ngrok.io', 19955)
+    # server = Server('127.0.0.1', 9000)
     db = Database()
     # thread = threading.Thread(target=listen, daemon=True)
     # thread.start()
@@ -19,67 +21,12 @@ def main(page: ft.Page):
 
     # ***************  Functions             *************
     def dropdown_changed(e):
-        if page.session.contains_key("user"):
+        if (emoji_list.value == "Chat Room"):
             page.clean()
-            chat.controls.clear()
-
-            roomId = emoji_list.value
-            isGroupRoom = db.is_group_room(roomId)
-            user_logged_in = page.session.get('user')
-            room_title = "Group"
-            chats = db.get_chat(roomId)
-            if (isGroupRoom):
-                room_title = db.get_group_room_name(roomId)
-                if chats:
-                    for chatItem in chats:
-                        if (chatItem[4] == "1"):
-                            chat.controls.append(ChatMessage(                            
-                                    Message(
-                                        user=user_logged_in,
-                                        text=chatItem[2],
-                                        message_type="chat_message",
-                                    )
-                                )
-                            )
-                        else:
-                            chat.controls.append(ChatMessage(                            
-                                    Message(
-                                        user=room_title,
-                                        text=chatItem[2],
-                                        message_type="chat_message",
-                                    )
-                                )
-                            )
-            else:
-                room_title = db.get_user_from_private_room(roomId)
-                if chats:
-                    for chatItem in chats:
-                        if (chatItem[4] == "1"):
-                            chat.controls.append(ChatMessage(                            
-                                    Message(
-                                        user=user_logged_in,
-                                        text=chatItem[2],
-                                        message_type="chat_message",
-                                    )
-                                )
-                            )
-                        else:
-                            chat.controls.append(ChatMessage(                            
-                                    Message(
-                                        user=room_title,
-                                        text=chatItem[2],
-                                        message_type="chat_message",
-                                    )
-                                )
-                            )
-            page.session.set("curr_receiver", room_title)
-            page.session.set("room_id", roomId)
-
             page.add(
                 ft.Row(
                     controls=[
                         emoji_list,
-                        ft.Text(value=room_title, color=ft.colors.BLACK),
                         ft.ElevatedButton(
                             text="Log Out",
                             bgcolor=ft.colors.CYAN_300,
@@ -91,26 +38,129 @@ def main(page: ft.Page):
                 )
             )
             page.add(
-                ft.Container(
-                    content=chat,
-                    border=ft.border.all(1, ft.colors.OUTLINE),
-                    border_radius=5,
-                    padding=10,
-                    expand=True,
-                )
+                ft.Text(value="Pilih room chat terlebih dahulu", size=50, color=ft.colors.BLACK),
             )
-            page.add(
-                ft.Row(
-                    controls=[
-                        new_message,
-                        ft.IconButton(
-                            icon=ft.icons.SEND_ROUNDED,
-                            tooltip="Send message",
-                            on_click=send_message_click,
-                        ),
-                    ],
+        elif page.session.contains_key("user"):
+            page.clean()
+            chat.controls.clear()
+
+            if (emoji_list.value == "Add Private Room"):           
+                page.add(
+                    ft.Row(
+                        controls=[
+                            emoji_list,
+                            ft.Text(value="Add New Private Room", color=ft.colors.BLACK),
+                            ft.ElevatedButton(
+                                text="Log Out",
+                                bgcolor=ft.colors.CYAN_300,
+                                color=ft.colors.BLACK,
+                                on_click=btn_exit,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    )
                 )
-            )
+                page.add(
+                    ft.Row(
+                        controls=[
+                            add_new_receiver_edit_text,
+                            ft.IconButton(
+                                icon=ft.icons.SEND_ROUNDED,
+                                tooltip="Tuliskan id tujuan",
+                                on_click=add_new_receiver_click,
+                            ),
+                        ],
+                    )
+                )
+            else:
+                roomId = emoji_list.value
+                isGroupRoom = db.is_group_room(roomId)
+                user_logged_in = page.session.get('user')
+                room_title = "Group"
+                chats = db.get_chat(roomId)
+                if (isGroupRoom):
+                    room_title = db.get_group_room_name(roomId)
+                    if chats:
+                        for chatItem in chats:
+                            if (chatItem[4] == "1"):
+                                chat.controls.append(ChatMessage(                            
+                                        Message(
+                                            user=user_logged_in,
+                                            text=chatItem[2],
+                                            message_type="chat_message",
+                                        )
+                                    )
+                                )
+                            else:
+                                chat.controls.append(ChatMessage(                            
+                                        Message(
+                                            user=room_title,
+                                            text=chatItem[2],
+                                            message_type="chat_message",
+                                        )
+                                    )
+                                )
+                else:
+                    room_title = db.get_user_from_private_room(roomId)
+                    if chats:
+                        for chatItem in chats:
+                            if (chatItem[4] == "1"):
+                                chat.controls.append(ChatMessage(                            
+                                        Message(
+                                            user=user_logged_in,
+                                            text=chatItem[2],
+                                            message_type="chat_message",
+                                        )
+                                    )
+                                )
+                            else:
+                                chat.controls.append(ChatMessage(                            
+                                        Message(
+                                            user=room_title,
+                                            text=chatItem[2],
+                                            message_type="chat_message",
+                                        )
+                                    )
+                                )
+                page.session.set("curr_receiver", room_title)
+                page.session.set("room_id", roomId)
+                page.add(
+                    ft.Row(
+                        controls=[
+                            emoji_list,
+                            ft.Text(value=room_title, color=ft.colors.BLACK),
+                            ft.ElevatedButton(
+                                text="Log Out",
+                                bgcolor=ft.colors.CYAN_300,
+                                color=ft.colors.BLACK,
+                                on_click=btn_exit,
+                            ),
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    )
+                )
+                page.add(
+                    ft.Container(
+                        content=chat,
+                        border=ft.border.all(1, ft.colors.OUTLINE),
+                        border_radius=5,
+                        padding=10,
+                        expand=True,
+                    )
+                )
+                page.add(
+                    ft.Row(
+                        controls=[
+                            new_message,
+                            ft.IconButton(
+                                icon=ft.icons.SEND_ROUNDED,
+                                tooltip="Send message",
+                                on_click=send_message_click,
+                            ),
+                        ],
+                    )
+                )
+            
             page.update()
 
     def open_dlg_sign_up_success():
@@ -205,6 +255,23 @@ def main(page: ft.Page):
             new_message.value = ""
             page.update()
 
+    def add_new_receiver_click(e):
+        if add_new_receiver_edit_text.value == "":
+            return
+        isExist = db.is_room_exist(add_new_receiver_edit_text.value, "PRIVATE")
+        if not isExist:
+            rooms = db.get_rooms()
+            for roomItem in rooms:
+                option = find_option(roomItem[0])
+                if option != None:
+                    emoji_list.options.remove(option)
+            db.write_room(add_new_receiver_edit_text.value, "")
+            rooms = db.get_rooms()
+            for room in rooms:
+                emoji_list.options.append(ft.dropdown.Option(room[0]))
+        add_new_receiver_edit_text.value = ""
+        page.update()
+
     def btn_signin(e):
         page.route = "/"
         page.update()
@@ -262,6 +329,7 @@ def main(page: ft.Page):
         on_change=dropdown_changed,
         options=[
             ft.dropdown.Option("Chat Room"),
+            ft.dropdown.Option("Add Private Room"),
         ],
         value="Chat Room",
         alignment=ft.alignment.center,
@@ -285,6 +353,17 @@ def main(page: ft.Page):
         filled=True,
         expand=True,
         on_submit=send_message_click,
+    )
+
+    add_new_receiver_edit_text = ft.TextField(
+        hint_text="Tuliskan id tujuan",
+        autofocus=True,
+        shift_enter=True,
+        min_lines=1,
+        max_lines=5,
+        filled=True,
+        expand=True,
+        on_submit=add_new_receiver_click,
     )
 
     dlg_sign_up_success = ft.AlertDialog(
@@ -430,27 +509,9 @@ def main(page: ft.Page):
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     )
                 )
-                # page.add(
-                #     ft.Container(
-                #         content=chat,
-                #         border=ft.border.all(1, ft.colors.OUTLINE),
-                #         border_radius=5,
-                #         padding=10,
-                #         expand=True,
-                #     )
-                # )
-                # page.add(
-                #     ft.Row(
-                #         controls=[
-                #             new_message,
-                #             ft.IconButton(
-                #                 icon=ft.icons.SEND_ROUNDED,
-                #                 tooltip="Send message",
-                #                 on_click=send_message_click,
-                #             ),
-                #         ],
-                #     )
-                # )
+                page.add(
+                    ft.Text(value="Pilih room chat terlebih dahulu", size=50, color=ft.colors.BLACK),
+                )
 
             else:
                 page.route = "/"
@@ -466,7 +527,7 @@ ft.app(target=main, view=ft.WEB_BROWSER)
 # ft.app(target=main)
 
 if(nekot != ""):
-    server = Server('0.tcp.ap.ngrok.io', 16590)
+    server = Server('0.tcp.ap.ngrok.io', 19955)
     db = Database()
     data = server.logout(nekot)
     if "success" in data:

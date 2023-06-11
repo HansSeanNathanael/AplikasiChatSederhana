@@ -53,6 +53,7 @@ class Server():
     def sign_up(self, user:str, password:str):
         self.send(f"REGISTER {user} {password}")
         status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        print("REGISTER STATUS = " + status)
         return json.loads(status)
     
     def logout(self, token:str):
