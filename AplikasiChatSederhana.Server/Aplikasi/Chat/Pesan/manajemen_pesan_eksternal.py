@@ -23,6 +23,13 @@ class ManajemenPesanEksternal:
         self.repository_grup = repository_grup
         
         
+    def dapatkan_realm_tujuan(self, id_user : str) -> str|None:
+        pattern = r"(?<=@)(\S+)"
+        daftar_domain = re.search(pattern, id_user)
+        if daftar_domain == None:
+            return None
+        return daftar_domain.group()
+        
         
     def mengirim_chat(self, id_pengirim : str, id_tujuan : str, id_grup : str|None, isi_chat : str) -> dict:
         # id grup bila None artinya bukan diteruskan dari grup realm eksternal.

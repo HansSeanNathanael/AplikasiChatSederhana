@@ -31,6 +31,5 @@ class ServerUntukRealmEksternal(threading.Thread):
             io_stream, alamat_realm = self.socket.accept()
             logging.warning(f"Koneksi masuk dari {alamat_realm} {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
             
-            self.daftar_klien.tambah_socket(io_stream)
             proses_realm = ProsesRealmEksternal(io_stream, alamat_realm, ChatManagerEksternal(self.manajemen_grup_eksternal, self.manajemen_pesan_eksternal))
             proses_realm.start()
