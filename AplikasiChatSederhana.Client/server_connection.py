@@ -16,10 +16,11 @@ class Server():
         received_data = ""
         while True:
             data = self.client.recv(self.receiveSize)
-            if not data:
-                break
-            received_data += data.decode(self.FORMAT)
-        print("KELUAR WHILE")
+            if data:
+                d = data.decode(self.FORMAT)
+                received_data = received_data + d
+                if received_data[-4:] == '\r\n\r\n':
+                    break
         return received_data
 
     def get_awalan_id(email:str):
@@ -91,7 +92,6 @@ class Server():
     
     def get_inbox(self, token:str):
         self.send(f"INBOX {token}")
-        # status = self.receive_all_data()
-        status = self.client.recv(self.receiveSize).decode(self.FORMAT)
-        # print(status)
+        status = self.receive_all_data()
+        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
         return json.loads(status)
