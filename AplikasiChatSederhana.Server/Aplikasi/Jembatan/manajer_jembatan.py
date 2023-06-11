@@ -190,7 +190,7 @@ class ManajerJembatan(InterfaceManajerJembatan):
             if pesan_file.pesan.id_grup is None:
                 pesan = f"FILE_EKSTERNAL\r\n{pesan_file.pesan.id_pengirim}\r\n{pesan_file.pesan.id_tujuan}\r\n{pesan_file.nama_file}\r\n{pesan_file.isi_file_base64}\r\n\r\n"
             else:
-                pesan = f"FILE_GRUP_EKSTERNAL\r\n{pesan_file.pesan.id_pengirim}\r\n{pesan_file.pesan.id_tujuan}\r\n{pesan_file.pesan.id_grup}\r\n{pesan_file.nama_file} {pesan_file.isi_file_base64}\r\n\r\n"
+                pesan = f"FILE_GRUP_EKSTERNAL\r\n{pesan_file.pesan.id_pengirim}\r\n{pesan_file.pesan.id_tujuan}\r\n{pesan_file.pesan.id_grup}\r\n{pesan_file.nama_file}\r\n{pesan_file.isi_file_base64}\r\n\r\n"
             sock.sendall(pesan.encode())
             hasil = ""
             while True:

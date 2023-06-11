@@ -9,8 +9,8 @@ nekot = ""
 
 def main(page: ft.Page):
     # server = Server('0.tcp.ap.ngrok.io', 16590)
-    server = Server('0.tcp.ap.ngrok.io', 19955)
-    # server = Server('127.0.0.1', 9000)
+    # server = Server('0.tcp.ap.ngrok.io', 19955)
+    server = Server('127.0.0.1', 9000)
     db = Database()
     # thread = threading.Thread(target=listen, daemon=True)
     # thread.start()
@@ -279,6 +279,7 @@ def main(page: ft.Page):
         page.update()
 
     def add_file_click(e):
+
         print("add file clicked")
         return
 
@@ -537,7 +538,8 @@ ft.app(target=main, view=ft.WEB_BROWSER)
 # ft.app(target=main)
 
 if(nekot != ""):
-    server = Server('0.tcp.ap.ngrok.io', 19955)
+    # server = Server('0.tcp.ap.ngrok.io', 19955)
+    server = Server('127.0.0.1', 9000)
     db = Database()
     data = server.logout(nekot)
     if "success" in data:
