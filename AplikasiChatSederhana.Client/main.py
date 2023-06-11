@@ -151,6 +151,12 @@ def main(page: ft.Page):
                 page.add(
                     ft.Row(
                         controls=[
+                            ft.IconButton(
+                                icon=ft.icons.ADD,
+                                icon_size=40,
+                                tooltip="Add File",
+                                on_click=add_file_click
+                            ),
                             new_message,
                             ft.IconButton(
                                 icon=ft.icons.SEND_ROUNDED,
@@ -271,6 +277,10 @@ def main(page: ft.Page):
                 emoji_list.options.append(ft.dropdown.Option(room[0]))
         add_new_receiver_edit_text.value = ""
         page.update()
+
+    def add_file_click(e):
+        print("add file clicked")
+        return
 
     def btn_signin(e):
         page.route = "/"
