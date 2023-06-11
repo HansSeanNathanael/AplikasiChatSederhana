@@ -27,6 +27,20 @@ class Server():
             if received_data[-4:] == '\r\n\r\n':
                 break
         return received_data
+    
+    def receive_all_data_listen(self):
+        received_data = ""
+        while True and isListening == True:
+            data = self.client.recv(self.receiveSize)
+            if not data:
+                break
+
+            d = data.decode(self.FORMAT)
+            received_data = received_data + d
+
+            if received_data[-4:] == '\r\n\r\n':
+                break
+        return received_data
 
     def get_awalan_id(email:str):
         match = re.match(r'(.*?)@kelompok6\.co\.id', email)
@@ -42,7 +56,8 @@ class Server():
             #     break
             if isListening == False:
                 break
-            msg = self.receive_all_data()
+            print("Tes Befire")
+            msg = self.receive_all_data_listen()
             print(f"[BROADCAST] {msg}")
         print("Thread Stop")
 
@@ -54,10 +69,11 @@ class Server():
     def startListen(self):
         # self.isListening = True
         global isListening
-        isListening = True
-        print("start listen")
-        # self.thread.start()
-        threading.Thread(target=self.listen, daemon=True).start()
+        if (isListening == False):
+            isListening = True
+            print("start listen")
+            # self.thread.start()
+            threading.Thread(target=self.listen, daemon=True).start()
 
     def stopListen(self):
         # self.isListening = False
