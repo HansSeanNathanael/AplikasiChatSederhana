@@ -38,7 +38,7 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
             
         try:
-            sock.sendall(f"############".encode())
+            sock.sendall(f"GABUNG_GRUP_EKSTERNAL {id_user} {id_grup} {password}\r\n\r\n".encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
@@ -89,7 +89,7 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
         
         try:
-            sock.sendall(f"############".encode())
+            sock.sendall(f"KELUAR_GRUP_EKSTERNAL {id_user} {id_grup}\r\n\r\n".encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
@@ -136,7 +136,8 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
             
         try:
-            sock.sendall(f"############".encode())
+            pesan = f"CHAT_GRUP_EKSTERNAL {pesan_chat.id_pengirim} {pesan_chat.id_tujuan} {pesan_chat.id_grup} {pesan_chat.isi_chat}\r\n\r\n"
+            sock.sendall(pesan.encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
@@ -183,7 +184,8 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
         
         try:
-            sock.sendall(f"############".encode())
+            pesan = f"FILE_GRUP_EKSTERNAL {pesan_file.pesan.id_pengirim} {pesan_file.pesan.id_tujuan} {pesan_file.pesan.id_grup} {pesan_file.file.nama_file} {pesan_file.file.isi_file}\r\n\r\n"
+            sock.sendall(pesan.encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
