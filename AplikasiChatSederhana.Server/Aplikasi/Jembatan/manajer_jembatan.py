@@ -136,7 +136,10 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
             
         try:
-            pesan = f"CHAT_GRUP_EKSTERNAL {pesan_chat.id_pengirim} {pesan_chat.id_tujuan} {pesan_chat.id_grup} {pesan_chat.isi_chat}\r\n\r\n"
+            if pesan_chat.pesan.id_grup is None:
+                pesan = f"CHAT_EKSTERNAL {pesan_chat.pesan.id_pengirim} {pesan_chat.pesan.id_tujuan} {pesan_chat.isi_pesan}\r\n\r\n"
+            else:
+                pesan = f"CHAT_GRUP_EKSTERNAL {pesan_chat.pesan.id_pengirim} {pesan_chat.pesan.id_tujuan} {pesan_chat.pesan.id_grup} {pesan_chat.isi_pesan}\r\n\r\n"
             sock.sendall(pesan.encode())
             hasil = ""
             while True:
@@ -184,7 +187,10 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
         
         try:
-            pesan = f"FILE_GRUP_EKSTERNAL {pesan_file.pesan.id_pengirim} {pesan_file.pesan.id_tujuan} {pesan_file.pesan.id_grup} {pesan_file.file.nama_file} {pesan_file.file.isi_file}\r\n\r\n"
+            if pesan_file.pesan.id_grup is None:
+                pesan = f"FILE_EKSTERNAL {pesan_file.pesan.id_pengirim} {pesan_file.pesan.id_tujuan} {pesan_file.nama_file} {pesan_file.isi_file_base64}\r\n\r\n"
+            else:
+                pesan = f"FILE_GRUP_EKSTERNAL {pesan_file.pesan.id_pengirim} {pesan_file.pesan.id_tujuan} {pesan_file.pesan.id_grup} {pesan_file.nama_file} {pesan_file.isi_file_base64}\r\n\r\n"
             sock.sendall(pesan.encode())
             hasil = ""
             while True:
