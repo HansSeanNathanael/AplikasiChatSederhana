@@ -2,9 +2,9 @@ import socket
 import threading
 import json
 import re
-
-isListening = True
-
+from time import sleep
+isListening = False
+gblMsg = ""
 class Server():
     def __init__(self, SERVER:str, PORT:int):
         self.FORMAT='utf-8'
@@ -31,6 +31,7 @@ class Server():
     def receive_all_data_listen(self):
         received_data = ""
         while True and isListening == True:
+            print("Masuk receivel all data\n")
             data = self.client.recv(self.receiveSize)
             if not data:
                 break
@@ -51,14 +52,22 @@ class Server():
     
     def listen(self):
         global isListening
+        global gblMsg
         while True:
             # if self.isListening == False:
             #     break
             if isListening == False:
                 break
             print("Tes Befire")
-            msg = self.receive_all_data_listen()
-            print(f"[BROADCAST] {msg}")
+            print("gblMsg is " + gblMsg)
+            while(gblMsg != ""):
+                sleep(2)
+            gblMsg = self.receive_all_data_listen()
+            sleep(5)
+            print("[REWRITE gblMsg] ")
+            if(gblMsg != ""):
+                print("[LIVECHAT]" + gblMsg)
+                gblMsg = ""
         print("Thread Stop")
 
     def send(self, msg):
@@ -84,78 +93,153 @@ class Server():
     def sign_in(self, user:str, password:str):
         self.send(f"LOGIN {user} {password}")
         status = self.receive_all_data()
-        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+
         print("LOGIN STATUS = " + status)
+        
         return json.loads(status)
     
     def sign_up(self, user:str, password:str):
         self.send(f"REGISTER {user} {password}")
+
         status = self.receive_all_data()
-        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+
         print("REGISTER STATUS = " + status)
+        
         return json.loads(status)
     
     def logout(self, token:str):
-        self.stopListen()
+        # self.stopListen()
 
         self.send(f"LOGOUT {token}")
-        status = self.receive_all_data()
+        global gblMsg
+        # status = self.receive_all_data()
+
+        print(gblMsg)
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
-        return json.loads(status)
+        while(gblMsg == ""):
+            sleep(2)
+        
+        
+        
+        temp = gblMsg
+        gblMsg = ""
+        print("[LOGOUT]")
+        return json.loads(temp)
     
     def create_group(self, token:str, email:str, password:str):
-        self.stopListen()
+        # self.stopListen()
 
         self.send(f"BUAT_GRUP {token} {self.get_awalan_id(email)} {password}")
-        status = self.receive_all_data()        
+        global gblMsg
+        # status = self.receive_all_data()
+        # 
+        # print(gblMsg)        
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        while(gblMsg == ""):
+            sleep(2)
 
-        self.startListen()
-        return json.loads(status)
+
+        # self.startListen()
+        
+        
+        temp = gblMsg
+        gblMsg = ""
+        return json.loads(temp)
     
     def join_group(self, token:str, id_grup:str, password:str):
-        self.stopListen()
+        # self.stopListen()
         
         self.send(f"GABUNG_GRUP {token} {id_grup} {password}")
-        status = self.receive_all_data()
-        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        global gblMsg
+        # status = self.receive_all_data()
 
-        self.startListen()
-        return json.loads(status)
+        print(gblMsg)
+        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        while(gblMsg == ""):
+            sleep(2)
+
+
+        # self.startListen()
+        
+        
+        temp = gblMsg
+        gblMsg = ""
+        return json.loads(temp)
     
     def keluar_group(self, token:str, id_grup:str):
-        self.stopListen()
+        # self.stopListen()
 
         self.send(f"KELUAR_GRUP {token} {id_grup}")
-        status = self.receive_all_data()
+        global gblMsg
+        # status = self.receive_all_data()
+
+        print(gblMsg)
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
-        return json.loads(status)
+        while(gblMsg == ""):
+            sleep(2)
+
+        
+        
+        temp = gblMsg
+        gblMsg = ""
+        return json.loads(temp)
     
     def send_chat(self, token:str, email_tujuan:str, chat_content:str):
-        self.stopListen()
+        # self.stopListen()
 
         s = "\r\n"
         msg = f"CHAT{s}{token}{s}{email_tujuan}{s}{chat_content}{s}{s}"
         message = msg.encode(self.FORMAT)
         self.client.send(message)
-        status = self.receive_all_data()
-        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        
+        # status = self.receive_all_data()
 
-        self.startListen()
-        return json.loads(status)
+        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        global gblMsg
+
+        # nunggu sampai tidak kosong
+        while(gblMsg == ""):
+            sleep(2)
+
+        print("[SENDCHAT]" + gblMsg + "\n")
+        # self.startListen()
+        
+        
+        temp = gblMsg
+        gblMsg = ""
+        print(temp)
+        return json.loads(temp)
     
     def send_file(self, token:str, email_tujuan:str, nama_file:str, isi_file:str):
-        self.stopListen()
+        # self.stopListen()
 
         self.send(f"FILE {token} {email_tujuan} {nama_file} {isi_file}")
-        status = self.receive_all_data()
-        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        global gblMsg
+        # status = self.receive_all_data()
 
-        self.startListen()
-        return json.loads(status)
+        print(gblMsg)
+        # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        while(gblMsg == ""):
+            sleep(2)
+
+
+        # self.startListen()
+        
+        
+        temp = gblMsg
+        gblMsg = ""
+        return json.loads(temp)
     
     def get_inbox(self, token:str):
         self.send(f"INBOX {token}")
+        # global gblMsg
         status = self.receive_all_data()
+
+        # print(gblMsg)
         # status = self.client.recv(self.receiveSize).decode(self.FORMAT)
+        # while(gblMsg == ""):
+        #     sleep(2)
+
+        
+
         return json.loads(status)

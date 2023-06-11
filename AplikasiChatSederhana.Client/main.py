@@ -73,7 +73,7 @@ def main(page: ft.Page):
                     )
                 )
             else:
-                server.stopListen()
+                # server.stopListen()
                 server.startListen()
                 
                 roomId = emoji_list.value
