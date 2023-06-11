@@ -38,7 +38,7 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
             
         try:
-            sock.sendall(f"############".encode())
+            sock.sendall(f"GABUNG_GRUP_EKSTERNAL {id_user} {id_grup} {password}\r\n\r\n".encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
@@ -89,7 +89,7 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
         
         try:
-            sock.sendall(f"############".encode())
+            sock.sendall(f"KELUAR_GRUP_EKSTERNAL {id_user} {id_grup}\r\n\r\n".encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
@@ -136,7 +136,11 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
             
         try:
-            sock.sendall(f"############".encode())
+            if pesan_chat.pesan.id_grup is None:
+                pesan = f"CHAT_EKSTERNAL {pesan_chat.pesan.id_pengirim} {pesan_chat.pesan.id_tujuan} {pesan_chat.isi_pesan}\r\n\r\n"
+            else:
+                pesan = f"CHAT_GRUP_EKSTERNAL {pesan_chat.pesan.id_pengirim} {pesan_chat.pesan.id_tujuan} {pesan_chat.pesan.id_grup} {pesan_chat.isi_pesan}\r\n\r\n"
+            sock.sendall(pesan.encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
@@ -183,7 +187,11 @@ class ManajerJembatan(InterfaceManajerJembatan):
                 return { 'error' : 'Connection Error' }
         
         try:
-            sock.sendall(f"############".encode())
+            if pesan_file.pesan.id_grup is None:
+                pesan = f"FILE_EKSTERNAL {pesan_file.pesan.id_pengirim} {pesan_file.pesan.id_tujuan} {pesan_file.nama_file} {pesan_file.isi_file_base64}\r\n\r\n"
+            else:
+                pesan = f"FILE_GRUP_EKSTERNAL {pesan_file.pesan.id_pengirim} {pesan_file.pesan.id_tujuan} {pesan_file.pesan.id_grup} {pesan_file.nama_file} {pesan_file.isi_file_base64}\r\n\r\n"
+            sock.sendall(pesan.encode())
             hasil = ""
             while True:
                 data = sock.recv(64)
