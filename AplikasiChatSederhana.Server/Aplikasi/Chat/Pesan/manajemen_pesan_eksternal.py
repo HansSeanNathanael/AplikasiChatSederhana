@@ -67,7 +67,7 @@ class ManajemenPesanEksternal:
                                 self.repository_pesan.tambah_pesan_chat(pesan_chat_baru)
                             
                             
-        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}
+        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima.strftime("%d-%m-%Y %H:%M:%S")}
     
     
     
@@ -113,5 +113,5 @@ class ManajemenPesanEksternal:
                                 self.repository_pesan.tambah_pesan_file(pesan_file_baru)
                             
                             
-        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima}
+        return {"success" : "pesan berhasil dikirim", "waktu_dikirim" : tanggal_diterima.strftime("%d-%m-%Y %H:%M:%S")}
     

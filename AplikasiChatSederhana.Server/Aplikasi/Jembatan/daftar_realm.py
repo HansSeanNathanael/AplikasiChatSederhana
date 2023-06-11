@@ -5,15 +5,18 @@ class DaftarRealm:
     def __init__(self):
         self.daftar_realm : dict[str, socket.socket|None]= {
             "kelompok5" : None,
-            "kelompok7" : None
+            "kelompok7" : None,
+            "kelompok6.com" : None
         }
         self.daftar_address : dict[str, (str, int)|None] = {
             "kelompok5" : None,
-            "kelompok7" : None
+            "kelompok7" : None,
+            "kelompok6.com" : ('172.16.16.103', 11002)
         }
         self.daftar_kunci_socket_realm : dict[str, threading.Lock] = {
             "kelompok5" : threading.Lock(),
-            "kelompok7" : threading.Lock()
+            "kelompok7" : threading.Lock(),
+            "kelompok6.com" : threading.Lock()
         }
         
     def pasangkan_socket_pada_realm(self, realm : str, io_stream : socket.socket) -> None:
@@ -37,7 +40,6 @@ class DaftarRealm:
         return False
     
     def dapatkan_socket_dari_realm(self, realm : str) -> socket.socket:
-        self.kunci_socket_realm(realm)
         if realm in self.daftar_realm:
             return self.daftar_realm[realm]
         return None 
