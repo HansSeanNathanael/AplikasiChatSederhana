@@ -17,25 +17,28 @@ class ProsesRealmEksternal(threading.Thread):
     def run(self):
         message =""
         
-        while True:
-            sub_message = self.io_stream.recv(32)
-            
-            if not sub_message:
-                break
-            
-            sub_message_decoded = sub_message.decode()
-            message = message + sub_message_decoded
-            
-            if message[-4:]=='\r\n\r\n':
+        try:
+            while True:
+                sub_message = self.io_stream.recv(32)
                 
-                logging.warning(f"data dari realm: {self.alamat} {message}")
+                if not sub_message:
+                    break
                 
-                hasil = json.dumps(self.chat_manager_eksternal.proses_request(message))
-                hasil=hasil+"\r\n\r\n"
+                sub_message_decoded = sub_message.decode()
+                message = message + sub_message_decoded
                 
-                logging.warning(f"data menuju realm: {self.alamat} {hasil}")
-                self.io_stream.sendall(hasil.encode())
-                message = ""
+                if message[-4:]=='\r\n\r\n':
+                    
+                    logging.warning(f"data dari realm: {self.alamat} {message}")
+                    
+                    hasil = json.dumps(self.chat_manager_eksternal.proses_request(message))
+                    hasil=hasil+"\r\n\r\n"
+                    
+                    logging.warning(f"data menuju realm: {self.alamat} {hasil}")
+                    self.io_stream.sendall(hasil.encode())
+                    message = ""
+        except:
+            pass
         
         try:
             self.io_stream.shutdown()

@@ -76,5 +76,5 @@ class ChatManager:
             
         except KeyError:
             return { 'error' : 'Informasi tidak ditemukan'}
-        # except IndexError:
-        #     return {'error': 'Protokol salah'}
+        except IndexError:
+            return {'error': 'Protokol salah'}

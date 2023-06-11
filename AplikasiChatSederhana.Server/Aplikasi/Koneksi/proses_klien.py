@@ -19,30 +19,33 @@ class ProsesKlien(threading.Thread):
     def run(self):
         message =""
         
-        while True:
-            sub_message = self.io_stream.recv(32)
-            if not sub_message:
-                break
-            
-            try:
-                sub_message_decoded = sub_message.decode()
-            except Exception as e:
-                logging.error(f"sub_message: {sub_message}")
-                message = ""
-                continue
+        try:
+            while True:
+                sub_message = self.io_stream.recv(32)
+                if not sub_message:
+                    break
                 
-            message = message + sub_message_decoded
-            
-            if message[-4:]=='\r\n\r\n':
+                try:
+                    sub_message_decoded = sub_message.decode()
+                except Exception as e:
+                    logging.error(f"sub_message: {sub_message}")
+                    message = ""
+                    continue
+                    
+                message = message + sub_message_decoded
                 
-                logging.warning(f"data dari client: {self.alamat} {message}")
-                
-                hasil = json.dumps(self.chat_manager.proses_request(message))
-                hasil=hasil+"\r\n\r\n"
-                
-                logging.warning(f"data menuju client: {self.alamat} {hasil}")
-                self.io_stream.sendall(hasil.encode())
-                message = ""
+                if message[-4:]=='\r\n\r\n':
+                    
+                    logging.warning(f"data dari client: {self.alamat} {message}")
+                    
+                    hasil = json.dumps(self.chat_manager.proses_request(message))
+                    hasil=hasil+"\r\n\r\n"
+                    
+                    logging.warning(f"data menuju client: {self.alamat} {hasil}")
+                    self.io_stream.sendall(hasil.encode())
+                    message = ""
+        except:
+            pass
         
         try:
             self.io_stream.shutdown()

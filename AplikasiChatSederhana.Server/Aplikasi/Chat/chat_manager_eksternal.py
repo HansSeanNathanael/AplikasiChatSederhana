@@ -35,7 +35,7 @@ class ChatManagerEksternal:
                 id_pengirim_eksternal = request[1].strip()
                 id_tujuan = request[2].strip()
                 nama_file = request[3].strip()
-                isi_file = request[3].strip()
+                isi_file = request[4].strip()
                 return self.manajemen_pesan_eksternal.mengirim_file(id_pengirim_eksternal, id_tujuan, None, nama_file, isi_file)
             
             
