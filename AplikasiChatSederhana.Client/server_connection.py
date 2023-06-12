@@ -2,9 +2,15 @@ import socket
 import threading
 import json
 import re
+import base64
 from time import sleep
+from database import *
+
 isListening = False
 gblMsg = ""
+gblBool = ""
+gblIsSendChat = False
+
 class Server():
     def __init__(self, SERVER:str, PORT:int):
         self.FORMAT='utf-8'
@@ -13,6 +19,14 @@ class Server():
         # self.isListening = True
         # self.thread = threading.Thread(target=self.listen, daemon=True)
         self.receiveSize = 32
+
+    def getGlobalMsg(self):
+        global gblBool
+        return gblBool
+    
+    def setGlobalMsgEmpty(self):
+        global gblBool
+        gblBool = ""
 
     def receive_all_data(self):
         received_data = ""
@@ -53,6 +67,8 @@ class Server():
     def listen(self):
         global isListening
         global gblMsg
+        global gblBool
+        global gblIsSendChat
         print("[THREAD STOP]")
         while True:
             # if self.isListening == False:
@@ -67,6 +83,10 @@ class Server():
             sleep(5)
             if(gblMsg != ""):
                 print("[LIVECHAT]" + gblMsg)
+                print(gblIsSendChat)
+                if (gblIsSendChat == False):
+                    gblBool = json.loads(gblMsg)
+                sleep(2)
                 print("[REWRITE gblMsg] ")
                 gblMsg = ""
         print("[THREAD STOP]")
@@ -191,6 +211,8 @@ class Server():
         s = "\r\n"
         msg = f"CHAT{s}{token}{s}{email_tujuan}{s}{chat_content}{s}{s}"
         message = msg.encode(self.FORMAT)
+        global gblIsSendChat
+        gblIsSendChat = True
         self.client.send(message)
         
         # status = self.receive_all_data()
@@ -208,12 +230,13 @@ class Server():
         
         temp = gblMsg
         gblMsg = ""
-        print(temp)
+        gblIsSendChat = False
         return json.loads(temp)
     
     def send_file(self, token:str, email_tujuan:str, nama_file:str, isi_file:str):
         # self.stopListen()
-
+        global gblIsSendChat
+        gblIsSendChat = True
         self.send(f"FILE {token} {email_tujuan} {nama_file} {isi_file}")
         global gblMsg
         # status = self.receive_all_data()
@@ -229,6 +252,7 @@ class Server():
         
         temp = gblMsg
         gblMsg = ""
+        gblIsSendChat = False
         return json.loads(temp)
     
     def get_inbox(self, token:str):

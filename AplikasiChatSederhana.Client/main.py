@@ -1,5 +1,7 @@
 import flet as ft
 import base64
+import threading
+from time import sleep
 from signin_form import *
 from signup_form import *
 from database import *
@@ -10,14 +12,76 @@ nekot = ""
 
 def main(page: ft.Page):
     # server = Server('0.tcp.ap.ngrok.io', 16590)
-    server = Server('0.tcp.ap.ngrok.io', 19955)
-    # server = Server('127.0.0.1', 9000)
+    # server = Server('0.tcp.ap.ngrok.io', 19955)
+    server = Server('127.0.0.1', 9000)
     db = Database()
     # thread = threading.Thread(target=listen, daemon=True)
     # thread.start()
     page.title = "Chat Flet Messenger"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+    def add_chat():
+        while True:
+            if server.getGlobalMsg() == "":
+                sleep(1)
+            if server.getGlobalMsg() != "":
+                value = server.getGlobalMsg()
+                # print("ini main" + value)
+                if value["keperluan"] == "PRIVATE":
+                    isExist = db.is_room_exist(value['id_pengirim'], value['keperluan'])
+                    if not isExist:
+                        db.write_room(value['id_pengirim'], "")
+                    roomId = db.get_room(value['id_pengirim'], value['keperluan'])
+                    # emoji_list.options.append(ft.dropdown.Option(roomId))
+                    contentChat = ""
+                    if value['bentuk_chat'] == "CHAT" :
+                        db.write_chat(roomId, value["chat"], "")
+                        contentChat = value["chat"]
+                    else :
+                        db.write_chat(roomId, value["nama_file"], "")
+                        isifile = base64.b64decode(value["isi_file"])
+                        fp = open("receivedFile/" + value["nama_file"],'wb+')
+                        contentChat = value["nama_file"]
+                        fp.write(isifile)
+                        fp.close()
+                        print("Berhasil")
+                    chat.controls.append(ChatMessage(                            
+                            Message(
+                                user=value['id_pengirim'],
+                                text=value["chat"],
+                                message_type="chat_message",
+                            )
+                        )
+                    )
+                else:
+                    isExist = db.is_room_exist(value['id_tujuan'], value['keperluan'])
+                    if not isExist:
+                        db.write_room(value['id_tujuan'], value['id_pengirim'])
+                    roomId = db.get_room(value['id_tujuan'], value['keperluan'])
+                    # emoji_list.options.append(ft.dropdown.Option(roomId))
+                    if value['bentuk_chat'] == "CHAT" :
+                        db.write_chat(roomId, value["chat"], "")
+                        contentChat = value["chat"]
+                    else :
+                        db.write_chat(roomId, value["nama_file"], "")
+                        isifile = base64.b64decode(value["isi_file"])
+                        fp = open("receivedFile/" + value["nama_file"],'wb+')
+                        contentChat = value["nama_file"]
+                        fp.write(isifile)
+                        fp.close()
+                        print("Berhasil")
+                    
+                    chat.controls.append(ChatMessage(                            
+                            Message(
+                                user=value['id_pengirim'],
+                                text=contentChat,
+                                message_type="chat_message",
+                            )
+                        )
+                    )
+                server.setGlobalMsgEmpty()
+                page.update()
 
     # ***************  Functions             *************
     def dropdown_changed(e):
@@ -168,6 +232,8 @@ def main(page: ft.Page):
                         ],
                     )
                 )
+                thread = threading.Thread(target=add_chat, daemon=True)
+                thread.start()
             
             page.update()
 
@@ -251,6 +317,7 @@ def main(page: ft.Page):
         room_id = page.session.get("room_id")
         data = server.send_chat(nekot, curr_rec, new_message.value)
         if "success" in data:
+            print("[SUCCESS SEND CHAT MAIN]")
             print(data)
             db.write_chat(room_id, new_message.value, "", "1")
             page.pubsub.send_all(
@@ -595,8 +662,8 @@ ft.app(target=main, view=ft.WEB_BROWSER)
 # ft.app(target=main)
 
 if(nekot != ""):
-    server = Server('0.tcp.ap.ngrok.io', 19955)
-    # server = Server('127.0.0.1', 9000)
+    # server = Server('0.tcp.ap.ngrok.io', 19955)
+    server = Server('127.0.0.1', 9000)
     db = Database()
     data = server.logout(nekot)
     if "success" in data:
